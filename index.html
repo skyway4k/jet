@@ -1,0 +1,1125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0a1628">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Name That Private Jet</title>
+<style>
+  :root {
+    --bg: #0a1628;
+    --bg-elevated: #122038;
+    --surface: #1a2d4a;
+    --border: rgba(255,255,255,0.08);
+    --text: #f0f4fa;
+    --text-muted: #8a9bb5;
+    --accent: #3d9eff;
+    --accent-dim: rgba(61,158,255,0.15);
+    --success: #3ecf8e;
+    --success-dim: rgba(62,207,142,0.18);
+    --danger: #ff6b6b;
+    --danger-dim: rgba(255,107,107,0.18);
+    --placard-bg: rgba(8,16,32,0.92);
+    --safe-top: env(safe-area-inset-top, 0px);
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
+    --radius: 12px;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    height: 100%;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -webkit-tap-highlight-color: transparent;
+    overscroll-behavior: none;
+  }
+
+  body {
+    display: flex;
+    flex-direction: column;
+    max-width: 480px;
+    margin: 0 auto;
+    min-height: 100dvh;
+  }
+
+  /* Header */
+  .header {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    padding: calc(12px + var(--safe-top)) 16px 12px;
+    background: rgba(10,22,40,0.92);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  .header h1 {
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+
+  .score {
+    font-size: 0.9rem;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    color: var(--text);
+  }
+
+  .score .called { color: var(--success); }
+
+  /* Main */
+  .main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 12px 16px calc(16px + var(--safe-bottom));
+    gap: 12px;
+  }
+
+  /* Photo stage */
+  .photo-stage {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 3 / 2;
+    border-radius: var(--radius);
+    overflow: hidden;
+    background: var(--surface);
+    user-select: none;
+    -webkit-user-select: none;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+  }
+
+  .photo-stage.loading { cursor: wait; }
+
+  .photo-stage img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: opacity 0.25s ease;
+  }
+
+  .photo-stage img.hidden { opacity: 0; }
+
+  .photo-overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+  }
+
+  .loading-spinner {
+    display: none;
+    width: 36px;
+    height: 36px;
+    border: 3px solid rgba(255,255,255,0.15);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+
+  .photo-stage.loading .loading-spinner { display: block; }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .error-box {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    padding: 20px;
+    text-align: center;
+  }
+
+  .photo-stage.error .error-box { display: flex; }
+  .photo-stage.error img { display: none; }
+
+  .error-box p {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+  }
+
+  .retry-btn {
+    pointer-events: auto;
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  .retry-btn:active { opacity: 0.85; }
+
+  /* Placard — off-screen until .revealed */
+  .placard {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: var(--placard-bg);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    padding: 14px 16px 16px;
+    transform: translateY(100%);
+    transition: transform 300ms cubic-bezier(0.22, 1, 0.36, 1);
+    border-top: 1px solid rgba(255,255,255,0.1);
+  }
+
+  .photo-stage.revealed .placard {
+    transform: translateY(0);
+  }
+
+  .placard .mfr {
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 2px;
+  }
+
+  .placard .name {
+    font-size: 1.35rem;
+    font-weight: 700;
+    line-height: 1.2;
+    color: var(--text);
+  }
+
+  .placard .sub {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    margin-top: 4px;
+  }
+
+  /* Hint link */
+  .hint-row {
+    min-height: 1.4em;
+  }
+
+  .hint-link {
+    color: var(--accent);
+    font-size: 0.9rem;
+    text-decoration: none;
+    cursor: pointer;
+    background: none;
+    border: none;
+    border-bottom: 1px solid rgba(61,158,255,0.3);
+    padding: 0;
+    font-family: inherit;
+  }
+
+  .hint-link:hover { border-bottom-color: var(--accent); }
+  .hint-link:disabled { opacity: 0.4; cursor: default; border-bottom-color: transparent; }
+
+  .hint-text {
+    display: none;
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    line-height: 1.4;
+    font-style: italic;
+  }
+
+  .hint-text.visible { display: block; }
+
+  /* Multiple-choice grid — visible once image is ready, before answer */
+  .choices {
+    display: none;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  .choices.visible { display: grid; }
+
+  .choice-btn {
+    appearance: none;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 10px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    font-family: inherit;
+    line-height: 1.25;
+    text-align: center;
+    color: var(--text);
+    background: var(--surface);
+    cursor: pointer;
+    transition: transform 0.1s, background 0.15s, border-color 0.15s, opacity 0.15s;
+    -webkit-user-select: none;
+    user-select: none;
+    min-height: 52px;
+  }
+
+  .choice-btn:active:not(:disabled) { transform: scale(0.97); }
+
+  .choice-btn:disabled {
+    cursor: default;
+  }
+
+  .choice-btn.correct {
+    background: var(--success-dim);
+    border-color: var(--success);
+    color: var(--success);
+  }
+
+  .choice-btn.wrong {
+    background: var(--danger-dim);
+    border-color: var(--danger);
+    color: var(--danger);
+  }
+
+  .choice-btn.dimmed {
+    opacity: 0.45;
+  }
+
+  /* Fact + Next (post-answer) */
+  .after-reveal {
+    display: none;
+    flex-direction: column;
+    gap: 14px;
+    animation: fadeIn 0.3s ease;
+  }
+
+  .after-reveal.visible { display: flex; }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .fact {
+    font-size: 0.9rem;
+    line-height: 1.5;
+    color: var(--text);
+    background: var(--bg-elevated);
+    padding: 12px 14px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+  }
+
+  .btn {
+    appearance: none;
+    border: none;
+    border-radius: 10px;
+    padding: 14px 12px;
+    font-size: 1rem;
+    font-weight: 600;
+    font-family: inherit;
+    cursor: pointer;
+    transition: transform 0.1s, opacity 0.15s;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+
+  .btn:active:not(:disabled) { transform: scale(0.97); }
+  .btn:disabled { opacity: 0.5; cursor: default; }
+
+  .btn-next {
+    background: var(--accent);
+    color: #fff;
+    width: 100%;
+  }
+
+  /* Attribution — hidden until after answer (filename often leaks type) */
+  .attrib {
+    display: none;
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    line-height: 1.35;
+    opacity: 0.75;
+  }
+
+  .attrib.visible { display: block; }
+
+  .attrib a {
+    color: var(--text-muted);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+
+  .attrib a:hover { color: var(--accent); }
+</style>
+</head>
+<body>
+  <header class="header">
+    <h1>Name That Jet</h1>
+    <div class="score" id="score">Round 1 · <span class="called">0</span>/0 called</div>
+  </header>
+
+  <main class="main">
+    <div class="photo-stage loading" id="stage" aria-label="Aircraft photo">
+      <img id="photo" class="hidden" alt="Business aircraft">
+      <div class="photo-overlay">
+        <div class="loading-spinner" aria-hidden="true"></div>
+        <div class="error-box">
+          <p id="errorMsg">Couldn't load image.</p>
+          <button type="button" class="retry-btn" id="retryBtn">Retry</button>
+        </div>
+      </div>
+      <div class="placard" id="placard" aria-live="polite">
+        <div class="mfr" id="mfr"></div>
+        <div class="name" id="name"></div>
+        <div class="sub" id="sub"></div>
+      </div>
+    </div>
+
+    <div class="hint-row">
+      <button type="button" class="hint-link" id="hintBtn">Give me a hint</button>
+      <p class="hint-text" id="hintText"></p>
+    </div>
+
+    <div class="choices" id="choices" role="group" aria-label="Guess the aircraft"></div>
+
+    <div class="after-reveal" id="afterReveal">
+      <p class="fact" id="fact"></p>
+      <button type="button" class="btn btn-next" id="nextBtn">Next</button>
+    </div>
+
+    <p class="attrib" id="attrib"></p>
+  </main>
+
+<script>
+(function () {
+  "use strict";
+
+  const COMMONS_API = "https://commons.wikimedia.org/w/api.php";
+
+  /** @type {Array<{manufacturer:string, displayName:string, sizeClass:string, hint:string, fact:string, searchQueries:string[]}>} */
+  const CATALOG = [
+    {
+      manufacturer: "Gulfstream",
+      displayName: "G650",
+      sizeClass: "Ultra-Long-Range",
+      hint: "Look for the tall oval windows and that long, swept wing with large curved winglets.",
+      fact: "The G650 set multiple city-pair speed records and can fly New York–Tokyo nonstop. Its 41,000-ft cabin altitude at cruise is among the lowest in business aviation.",
+      searchQueries: ["Gulfstream G650", "Gulfstream G650ER"]
+    },
+    {
+      manufacturer: "Gulfstream",
+      displayName: "G550",
+      sizeClass: "Large Cabin",
+      hint: "Seven oval windows per side and a classic Gulfstream nose; twin Rolls-Royce engines with no under-wing pylons.",
+      fact: "The G550 was a NASA and special-mission favorite as well as a boardroom jet. Over 600 were built before production wound down in favor of the G500/G600 family.",
+      searchQueries: ["Gulfstream G550", "Gulfstream GV-SP"]
+    },
+    {
+      manufacturer: "Gulfstream",
+      displayName: "GIV / G400",
+      sizeClass: "Large Cabin",
+      hint: "Six oval windows per side and the classic Gulfstream wing with tip tanks or early winglets, depending on year.",
+      fact: "The GIV introduced Gulfstream's first glass cockpit and became the template for a generation of large-cabin twins. Later G400 branding was largely a market refresh of the same airframe family.",
+      searchQueries: ["Gulfstream GIV", "Gulfstream IV", "Gulfstream G400"]
+    },
+    {
+      manufacturer: "Gulfstream",
+      displayName: "G280",
+      sizeClass: "Super-Midsize",
+      hint: "Shorter Gulfstream fuselage with oval windows, T-tail, and engines mounted on the rear fuselage — not a G650 lookalike.",
+      fact: "Born from a collaboration with Israel Aerospace Industries (as the G250), the G280 packs large-cabin DNA into a super-midsize package with impressive hot-and-high performance.",
+      searchQueries: ["Gulfstream G280", "Gulfstream G250"]
+    },
+    {
+      manufacturer: "Bombardier",
+      displayName: "Global 7500",
+      sizeClass: "Ultra-Long-Range",
+      hint: "Very long fuselage with four living zones visible in the window count, and a distinctive high-aspect-ratio wing.",
+      fact: "The Global 7500 was the first purpose-built four-zone ultra-long-range jet and briefly held the title of world's longest-range business aircraft at entry into service.",
+      searchQueries: ["Bombardier Global 7500", "Global 7500"]
+    },
+    {
+      manufacturer: "Bombardier",
+      displayName: "Global Express / XRS",
+      sizeClass: "Ultra-Long-Range",
+      hint: "Large Bombardier Global with a rounder nose and fewer windows than a 7500; twin rear engines and a tall T-tail.",
+      fact: "The Global Express pioneered the ultra-long-range category in the late 1990s. The XRS upgrade added range, a redesigned cabin, and better field performance.",
+      searchQueries: ["Bombardier Global Express", "Global Express XRS", "Bombardier Global 5000"]
+    },
+    {
+      manufacturer: "Bombardier",
+      displayName: "Challenger 350",
+      sizeClass: "Super-Midsize",
+      hint: "Wide oval fuselage cross-section, winglets, and a relatively short cabin compared with Globals — classic Challenger proportions.",
+      fact: "The Challenger 350 refined the 300 series with new engines, winglets, and a quieter cabin, becoming one of the best-selling super-midsize jets of its decade.",
+      searchQueries: ["Bombardier Challenger 350", "Challenger 350"]
+    },
+    {
+      manufacturer: "Bombardier",
+      displayName: "Challenger 605",
+      sizeClass: "Large Cabin",
+      hint: "Widebody Challenger with a flat-floor cabin feel and a more upright windshield than the Global family.",
+      fact: "The Challenger 600 series pioneered the widebody business jet. The 605 brought Rockwell Collins Pro Line 21 avionics and cabin upgrades to the classic airframe.",
+      searchQueries: ["Bombardier Challenger 605", "Challenger 605"]
+    },
+    {
+      manufacturer: "Cessna",
+      displayName: "Citation X",
+      sizeClass: "Super-Midsize",
+      hint: "Highly swept wing and a pointed nose — built to look fast even when parked.",
+      fact: "For years the Citation X was the world's fastest civilian aircraft outside Concorde territory, with a Mach 0.935 Mmo that still turns heads among pilots.",
+      searchQueries: ["Cessna Citation X", "Citation X"]
+    },
+    {
+      manufacturer: "Cessna",
+      displayName: "Citation Latitude",
+      sizeClass: "Midsize",
+      hint: "Flat-floor midsize cabin with a stand-up aisle and relatively large oval windows for a Citation.",
+      fact: "The Latitude brought a true flat floor and Garmin G5000 cockpit to Cessna's midsize lineup, bridging the gap between light Citations and the Longitude.",
+      searchQueries: ["Cessna Citation Latitude", "Citation Latitude"]
+    },
+    {
+      manufacturer: "Cessna",
+      displayName: "Citation Mustang",
+      sizeClass: "Very Light",
+      hint: "Tiny twinjet with a T-tail, small oval windows, and engines tucked close to the rear fuselage.",
+      fact: "The Mustang helped define the very-light-jet boom of the mid-2000s with simple systems and Garmin G1000 avionics before production ended in 2017.",
+      searchQueries: ["Cessna Citation Mustang", "Citation Mustang"]
+    },
+    {
+      manufacturer: "Embraer",
+      displayName: "Phenom 300",
+      sizeClass: "Light",
+      hint: "Sleek Brazilian light jet with a slightly swept wing, winglets, and a single-pilot-friendly cockpit eyebrow windows.",
+      fact: "The Phenom 300 has repeatedly topped light-jet delivery charts. Its clean-sheet design and strong climb performance made it a favorite of both owners and fractional fleets.",
+      searchQueries: ["Embraer Phenom 300", "Phenom 300"]
+    },
+    {
+      manufacturer: "Embraer",
+      displayName: "Phenom 100",
+      sizeClass: "Very Light",
+      hint: "Smaller sibling of the 300 — short cabin, T-tail, and those signature Embraer oval passenger windows.",
+      fact: "The Phenom 100 brought airline-derived engineering to the VLJ segment and later evolved into the Phenom 100EV with improved engines and avionics.",
+      searchQueries: ["Embraer Phenom 100", "Phenom 100"]
+    },
+    {
+      manufacturer: "Embraer",
+      displayName: "Praetor 600",
+      sizeClass: "Super-Midsize",
+      hint: "Longer Embraer business jet with distinctive winglets and a cabin that looks stretched compared with a Phenom.",
+      fact: "The Praetor 600 added range tanks and fly-by-wire spoilers to the Legacy 500 platform, giving it transatlantic capability rare in the super-midsize class.",
+      searchQueries: ["Embraer Praetor 600", "Praetor 600"]
+    },
+    {
+      manufacturer: "Embraer",
+      displayName: "Legacy 650",
+      sizeClass: "Large Cabin",
+      hint: "Airliner-derived Embraer with more windows than a purpose-built bizjet and a taller fuselage cross-section.",
+      fact: "Based on the ERJ-135 regional jet, the Legacy 650 offers a three-zone cabin and intercontinental range while keeping familiar Embraer systems.",
+      searchQueries: ["Embraer Legacy 650", "Legacy 650"]
+    },
+    {
+      manufacturer: "Dassault",
+      displayName: "Falcon 7X",
+      sizeClass: "Large Cabin",
+      hint: "Three engines — two on the sides and one in the tail — plus a highly swept wing with distinctive curved winglets.",
+      fact: "The Falcon 7X was the first fly-by-wire business jet and Dassault's answer to ultra-long-range twins, with a cabin quieter than many larger competitors.",
+      searchQueries: ["Dassault Falcon 7X", "Falcon 7X"]
+    },
+    {
+      manufacturer: "Dassault",
+      displayName: "Falcon 8X",
+      sizeClass: "Ultra-Long-Range",
+      hint: "Trijet like the 7X but with a longer fuselage and refined wingtips — count the windows if you can.",
+      fact: "The 8X stretches the 7X by about 3.5 feet, adds range, and offers more cabin customization while keeping Dassault's trademark three-engine layout.",
+      searchQueries: ["Dassault Falcon 8X", "Falcon 8X"]
+    },
+    {
+      manufacturer: "Dassault",
+      displayName: "Falcon 2000",
+      sizeClass: "Large Cabin",
+      hint: "Twin-engine Falcon with a wide cabin cross-section and no third tail engine — look for the classic Falcon nose.",
+      fact: "The Falcon 2000 family pairs a widebody-inspired cabin with efficient twin turbofans. Variants like the 2000LX and 2000LXS added blended winglets and longer legs.",
+      searchQueries: ["Dassault Falcon 2000", "Falcon 2000LX"]
+    },
+    {
+      manufacturer: "Dassault",
+      displayName: "Falcon 900",
+      sizeClass: "Large Cabin",
+      hint: "Three-engine Falcon with a shorter cabin than a 7X/8X and traditional straight-ish wingtips on older examples.",
+      fact: "The Falcon 900's trijet design allows steep approaches into short or high-altitude airports that twin heavy jets often avoid — a Dassault hallmark.",
+      searchQueries: ["Dassault Falcon 900", "Falcon 900EX"]
+    },
+    {
+      manufacturer: "Bombardier Learjet",
+      displayName: "Learjet 75",
+      sizeClass: "Light",
+      hint: "Pointy Learjet nose, delta fins under the tail, and a relatively narrow fuselage — the classic Lear silhouette.",
+      fact: "The Learjet 75 updated the 40/45 family with Garmin avionics, winglets, and new engines. Learjets defined the light-jet image for decades before production ended in 2021.",
+      searchQueries: ["Learjet 75", "Bombardier Learjet 75", "Learjet 45"]
+    },
+    {
+      manufacturer: "Hawker Beechcraft",
+      displayName: "Hawker 800XP",
+      sizeClass: "Midsize",
+      hint: "Midsize twin with a distinctive curved windshield and engines mounted fairly high on the rear fuselage.",
+      fact: "Descended from the British Aerospace 125, the Hawker 800XP was a workhorse of charter and corporate fleets thanks to a comfortable cabin and solid dispatch reliability.",
+      searchQueries: ["Hawker 800XP", "Hawker 800"]
+    },
+    {
+      manufacturer: "Beechcraft",
+      displayName: "King Air 350",
+      sizeClass: "Turboprop",
+      hint: "Twin turboprop with T-tail, wingtip tanks or winglets, and a squared-oval cabin cross-section — not a jet.",
+      fact: "The King Air 350 (later 350i/350ER) remains one of the most successful twin turboprops ever, prized for short-field access and lower operating costs than light jets.",
+      searchQueries: ["Beechcraft King Air 350", "King Air 350"]
+    },
+    {
+      manufacturer: "Honda Aircraft",
+      displayName: "HondaJet HA-420",
+      sizeClass: "Very Light",
+      hint: "Engines mounted on pylons above the wing — unique among production business jets — plus a smooth natural-laminar-flow nose.",
+      fact: "Honda's over-wing engine mount reduces cabin noise and frees fuselage volume. The HA-420 was the first aircraft Honda designed and built from scratch.",
+      searchQueries: ["HondaJet", "Honda HA-420", "HondaJet Elite"]
+    },
+    {
+      manufacturer: "Eclipse Aviation",
+      displayName: "Eclipse 500",
+      sizeClass: "Very Light",
+      hint: "Very small twinjet with tiny engines, a short cabin, and a somewhat blunt nose compared with a Mustang.",
+      fact: "The Eclipse 500 helped launch the VLJ concept but its maker went through bankruptcy. Surviving airframes and the later Eclipse 550 still turn heads at GA airports.",
+      searchQueries: ["Eclipse 500", "Eclipse Aviation 500"]
+    },
+    {
+      manufacturer: "Cirrus",
+      displayName: "Vision Jet SF50",
+      sizeClass: "Very Light",
+      hint: "Single jet engine on top of the fuselage, V-tail, and that huge panoramic windshield — plus a CAPS parachute.",
+      fact: "The Vision Jet is the first single-engine personal jet with a whole-aircraft parachute system. Its unique look makes it one of the easiest bizjets to spot on a ramp.",
+      searchQueries: ["Cirrus Vision Jet", "Cirrus SF50", "Vision SF50"]
+    },
+    {
+      manufacturer: "Pilatus",
+      displayName: "PC-24",
+      sizeClass: "Light",
+      hint: "Single door that doubles as a cargo hatch, straight wing with winglets, and a Swiss-clean fuselage — jet that can use short runways.",
+      fact: "Pilatus marketed the PC-24 as the \"super versatile jet\" — certified for unpaved runways with a cargo door large enough for a pallet, rare in the light-jet class.",
+      searchQueries: ["Pilatus PC-24", "PC-24"]
+    },
+    {
+      manufacturer: "Piaggio",
+      displayName: "Avanti",
+      sizeClass: "Turboprop",
+      hint: "Pusher turboprops on the wing, a forward canard-like wing, and a sleek dolphin fuselage — nothing else looks like it.",
+      fact: "The P.180 Avanti's three-lifting-surface design and pusher props give it jet-like cruise speeds with turboprop efficiency. Spotters rarely confuse it with anything else.",
+      searchQueries: ["Piaggio Avanti", "Piaggio P.180", "P.180 Avanti"]
+    }
+  ];
+
+  // --- Registration patterns from Commons filenames ---
+  const REG_PATTERNS = [
+    /\bN\d{1,5}[A-Z]{0,2}\b/i,
+    /\bG-[A-Z]{4}\b/i,
+    /\bC-[A-Z][A-Z0-9]{3}\b/i,
+    /\bD-[A-Z]{4}\b/i,
+    /\bF-[A-Z]{4}\b/i,
+    /\bHB-[A-Z0-9]+\b/i,
+    /\bP[PRT]-[A-Z0-9]+\b/i,
+    /\bVH-[A-Z]{3}\b/i,
+    /\bZK-[A-Z]{3}\b/i,
+    /\bJA\d{4}[A-Z]?\b/i,
+    /\bB-\d{3,5}[A-Z]?\b/i,
+    /\bM-[A-Z]{4}\b/i,
+    /\bT7-[A-Z0-9]+\b/i,
+    /\b9H-[A-Z]{3}\b/i,
+    /\bOE-[A-Z0-9]+\b/i,
+    /\bOY-[A-Z]{3}\b/i,
+    /\bSE-[A-Z]{3}\b/i,
+    /\bPH-[A-Z]{3}\b/i,
+    /\bI-[A-Z]{4}\b/i,
+    /\bEC-[A-Z]{3}\b/i,
+    /\bCS-[A-Z]{3}\b/i,
+    /\bLX-[A-Z]{3}\b/i,
+    /\bVP-[A-Z]{3}\b/i,
+    /\bVQ-[A-Z]{3}\b/i,
+    /\bA6-[A-Z]{3}\b/i,
+    /\bA7-[A-Z]{3}\b/i,
+    /\bHZ-[A-Z0-9]+\b/i,
+    /\bTC-[A-Z]{3}\b/i,
+    /\bRA-\d{5}\b/i,
+    /\bZS-[A-Z]{3}\b/i
+  ];
+
+  // --- State ---
+  let deck = [];
+  let deckIndex = 0;
+  let round = 1;
+  let called = 0;
+  let answered = 0;
+  let revealed = false;
+  let advancing = false;
+  let usedFileTitles = new Set();
+  let current = null; // { type, image, registration }
+  let nextReady = null; // preloaded round data
+  let preloadPromise = null;
+
+  // --- DOM ---
+  const stage = document.getElementById("stage");
+  const photo = document.getElementById("photo");
+  const scoreEl = document.getElementById("score");
+  const hintBtn = document.getElementById("hintBtn");
+  const hintText = document.getElementById("hintText");
+  const choicesEl = document.getElementById("choices");
+  const afterReveal = document.getElementById("afterReveal");
+  const factEl = document.getElementById("fact");
+  const nextBtn = document.getElementById("nextBtn");
+  const attrib = document.getElementById("attrib");
+  const mfrEl = document.getElementById("mfr");
+  const nameEl = document.getElementById("name");
+  const subEl = document.getElementById("sub");
+  const retryBtn = document.getElementById("retryBtn");
+  const errorMsg = document.getElementById("errorMsg");
+
+  function typeKey(t) {
+    return t.manufacturer + "|" + t.displayName;
+  }
+
+  function labelFor(t) {
+    return t.manufacturer + " " + t.displayName;
+  }
+
+  function shuffle(arr) {
+    const a = arr.slice();
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+  }
+
+  /**
+   * Build 6 similar choices: correct + 5 distractors.
+   * Prefer same sizeClass, then same manufacturer, then rest of catalog.
+   * Never duplicate the correct type; shuffle so correct isn't always same slot.
+   */
+  function buildChoices(correct) {
+    const correctKey = typeKey(correct);
+    const pool = CATALOG.filter(t => typeKey(t) !== correctKey);
+
+    const sameSize = shuffle(pool.filter(t => t.sizeClass === correct.sizeClass));
+    const sameMfr = shuffle(pool.filter(t =>
+      t.manufacturer === correct.manufacturer && t.sizeClass !== correct.sizeClass
+    ));
+    const others = shuffle(pool.filter(t =>
+      t.sizeClass !== correct.sizeClass && t.manufacturer !== correct.manufacturer
+    ));
+
+    const picked = [];
+    const pickedKeys = new Set();
+
+    function takeFrom(list, n) {
+      for (const t of list) {
+        if (picked.length >= n) break;
+        const k = typeKey(t);
+        if (pickedKeys.has(k)) continue;
+        pickedKeys.add(k);
+        picked.push(t);
+      }
+    }
+
+    takeFrom(sameSize, 5);
+    takeFrom(sameMfr, 5);
+    takeFrom(others, 5);
+
+    // If somehow short (tiny catalog), pad from remaining pool
+    if (picked.length < 5) {
+      takeFrom(shuffle(pool), 5);
+    }
+
+    const choices = shuffle([correct].concat(picked.slice(0, 5)));
+    return choices;
+  }
+
+  function renderChoices(correct) {
+    const opts = buildChoices(correct);
+    choicesEl.innerHTML = "";
+    opts.forEach(function (t) {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "choice-btn";
+      btn.textContent = labelFor(t);
+      btn.dataset.key = typeKey(t);
+      btn.addEventListener("click", function () {
+        onChoose(t);
+      });
+      choicesEl.appendChild(btn);
+    });
+    choicesEl.classList.add("visible");
+  }
+
+  function refillDeck(avoidType) {
+    let types = shuffle(CATALOG);
+    if (avoidType && types.length > 1 && types[0] === avoidType) {
+      const swap = 1 + Math.floor(Math.random() * (types.length - 1));
+      [types[0], types[swap]] = [types[swap], types[0]];
+    }
+    deck = types;
+    deckIndex = 0;
+  }
+
+  function nextType() {
+    if (deckIndex >= deck.length) {
+      refillDeck(current && current.type);
+    }
+    const t = deck[deckIndex++];
+    return t;
+  }
+
+  function parseRegistration(title) {
+    if (!title) return null;
+    let name = title.replace(/^File:/i, "");
+    name = name.replace(/\.[^.]+$/, "");
+    name = name.replace(/_/g, " ");
+    for (const re of REG_PATTERNS) {
+      const m = name.match(re);
+      if (m) return m[0].toUpperCase();
+    }
+    return null;
+  }
+
+  function buildApiUrl(query) {
+    const params = new URLSearchParams({
+      action: "query",
+      format: "json",
+      origin: "*",
+      generator: "search",
+      gsrsearch: query,
+      gsrnamespace: "6",
+      gsrlimit: "20",
+      prop: "imageinfo",
+      iiprop: "url|size|mime|extmetadata",
+      iiurlwidth: "1200"
+    });
+    return COMMONS_API + "?" + params.toString();
+  }
+
+  function isUsablePage(page) {
+    const info = page.imageinfo && page.imageinfo[0];
+    if (!info) return false;
+    const mime = (info.mime || "").toLowerCase();
+    if (mime !== "image/jpeg" && mime !== "image/png") return false;
+    const title = (page.title || "").toLowerCase();
+    if (/logo|diagram|drawing|schematic|cutaway|silhouette|icon|svg/i.test(title)) return false;
+    return true;
+  }
+
+  function scoreImage(page) {
+    const info = page.imageinfo[0];
+    let s = 0;
+    if (info.mime === "image/jpeg") s += 2;
+    if (info.width && info.height) {
+      if (info.width >= info.height) s += 5;
+      if (info.width >= 800) s += 2;
+      if (info.width >= 1200) s += 1;
+    }
+    const title = (page.title || "").toLowerCase();
+    if (/airport|ramp|taxi|flying|inflight|in-flight|airborne|approach/i.test(title)) s += 1;
+    if (usedFileTitles.has(page.title)) s -= 20;
+    return s;
+  }
+
+  async function fetchImagesForQuery(query) {
+    const url = buildApiUrl(query);
+    const res = await fetch(url);
+    if (!res.ok) throw new Error("Commons HTTP " + res.status);
+    const data = await res.json();
+    if (!data.query || !data.query.pages) return [];
+    return Object.values(data.query.pages).filter(isUsablePage);
+  }
+
+  async function findImageForType(type) {
+    let candidates = [];
+    for (const q of type.searchQueries) {
+      try {
+        const pages = await fetchImagesForQuery(q);
+        candidates = candidates.concat(pages);
+        if (candidates.length >= 3) break;
+      } catch (e) {
+        // try next query
+      }
+    }
+    const seen = new Set();
+    candidates = candidates.filter(p => {
+      if (seen.has(p.title)) return false;
+      seen.add(p.title);
+      return true;
+    });
+
+    let fresh = candidates.filter(p => !usedFileTitles.has(p.title));
+    if (!fresh.length) fresh = candidates;
+    if (!fresh.length) return null;
+
+    fresh.sort((a, b) => scoreImage(b) - scoreImage(a));
+    const topScore = scoreImage(fresh[0]);
+    const top = fresh.filter(p => scoreImage(p) >= topScore - 2);
+    const pick = top[Math.floor(Math.random() * top.length)];
+    const info = pick.imageinfo[0];
+    const meta = info.extmetadata || {};
+    const artistRaw = (meta.Artist && meta.Artist.value) || "";
+    const artist = stripHtml(artistRaw) || "Unknown artist";
+    const fileUrl = info.thumburl || info.url;
+    const descUrl = info.descriptionurl || ("https://commons.wikimedia.org/wiki/" + encodeURIComponent(pick.title));
+
+    return {
+      title: pick.title,
+      url: fileUrl,
+      artist: artist,
+      descriptionUrl: descUrl,
+      registration: parseRegistration(pick.title)
+    };
+  }
+
+  function stripHtml(html) {
+    const tmp = document.createElement("div");
+    tmp.innerHTML = html;
+    return (tmp.textContent || tmp.innerText || "").trim().replace(/\s+/g, " ");
+  }
+
+  function preloadImage(url) {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => resolve(img);
+      img.onerror = () => reject(new Error("Image load failed"));
+      img.src = url;
+    });
+  }
+
+  async function prepareRound(preferType) {
+    const tried = new Set();
+    let attempts = 0;
+    const maxAttempts = Math.min(8, CATALOG.length);
+
+    while (attempts < maxAttempts) {
+      attempts++;
+      const type = preferType && attempts === 1 ? preferType : nextType();
+      if (tried.has(type.displayName)) continue;
+      tried.add(type.displayName);
+
+      try {
+        const image = await findImageForType(type);
+        if (!image) continue;
+        await preloadImage(image.url);
+        return { type, image, registration: image.registration };
+      } catch (e) {
+        // try another type
+      }
+    }
+    throw new Error("Couldn't find a usable Wikimedia image. Check your connection and try again.");
+  }
+
+  function updateScore() {
+    scoreEl.innerHTML =
+      "Round " + round + " · <span class=\"called\">" + called + "</span>/" + answered + " called";
+  }
+
+  function clearAnswerUi() {
+    afterReveal.classList.remove("visible");
+    factEl.textContent = "";
+    attrib.innerHTML = "";
+    attrib.classList.remove("visible");
+    choicesEl.innerHTML = "";
+    choicesEl.classList.remove("visible");
+    mfrEl.textContent = "";
+    nameEl.textContent = "";
+    subEl.textContent = "";
+    photo.alt = "Business aircraft";
+  }
+
+  function showLoading() {
+    stage.classList.add("loading");
+    stage.classList.remove("error", "revealed");
+    photo.classList.add("hidden");
+    hintBtn.style.display = "";
+    hintText.classList.remove("visible");
+    hintText.textContent = "";
+    clearAnswerUi();
+    revealed = false;
+  }
+
+  function showError(msg) {
+    stage.classList.remove("loading", "revealed");
+    stage.classList.add("error");
+    photo.classList.add("hidden");
+    errorMsg.textContent = msg || "Couldn't load image.";
+    clearAnswerUi();
+  }
+
+  function applyRound(data) {
+    current = data;
+    usedFileTitles.add(data.image.title);
+
+    showLoading();
+    // Keep alt generic until after answer — manufacturer/type would leak
+    photo.alt = "Business aircraft";
+    photo.src = data.image.url;
+    photo.classList.remove("hidden");
+    stage.classList.remove("loading", "error");
+
+    // Placard text filled now but CSS keeps it translated off-screen until .revealed
+    mfrEl.textContent = data.type.manufacturer;
+    nameEl.textContent = data.type.displayName;
+    const parts = [data.type.sizeClass];
+    if (data.registration) parts.push(data.registration);
+    subEl.textContent = parts.join(" · ");
+
+    // Fact and attribution prepared but not shown until answer
+    factEl.textContent = data.type.fact;
+    hintText.textContent = data.type.hint;
+
+    const titleShort = data.image.title.replace(/^File:/i, "");
+    attrib.innerHTML =
+      '<a href="' + escapeAttr(data.image.descriptionUrl) + '" target="_blank" rel="noopener noreferrer">' +
+      escapeHtml(titleShort) + "</a>" +
+      " · " + escapeHtml(data.image.artist) +
+      " · via Wikimedia Commons";
+    attrib.classList.remove("visible");
+
+    renderChoices(data.type);
+
+    hintBtn.disabled = false;
+    nextBtn.disabled = false;
+    advancing = false;
+    updateScore();
+
+    startPreloadNext();
+  }
+
+  function escapeHtml(s) {
+    return String(s)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;");
+  }
+
+  function escapeAttr(s) {
+    return escapeHtml(s).replace(/'/g, "&#39;");
+  }
+
+  function startPreloadNext() {
+    preloadPromise = prepareRound(null)
+      .then(data => {
+        nextReady = data;
+        return data;
+      })
+      .catch(() => {
+        nextReady = null;
+      });
+  }
+
+  async function loadInitial() {
+    showLoading();
+    refillDeck(null);
+    try {
+      const data = await prepareRound(null);
+      applyRound(data);
+    } catch (e) {
+      showError(e.message || "Couldn't load image.");
+    }
+  }
+
+  function onChoose(selected) {
+    if (revealed || !current || stage.classList.contains("loading") || stage.classList.contains("error")) {
+      return;
+    }
+    revealed = true;
+
+    const correctKey = typeKey(current.type);
+    const selectedKey = typeKey(selected);
+    const isCorrect = selectedKey === correctKey;
+
+    const buttons = choicesEl.querySelectorAll(".choice-btn");
+    buttons.forEach(function (btn) {
+      btn.disabled = true;
+      const key = btn.dataset.key;
+      if (key === correctKey) {
+        btn.classList.add("correct");
+      } else if (key === selectedKey && !isCorrect) {
+        btn.classList.add("wrong");
+      } else {
+        btn.classList.add("dimmed");
+      }
+    });
+
+    // Reveal placard on photo
+    stage.classList.add("revealed");
+
+    // Show fact + attribution; update alt now that answer is known
+    photo.alt = labelFor(current.type);
+    afterReveal.classList.add("visible");
+    attrib.classList.add("visible");
+
+    // Hide hint button after answer; leave hint text if already shown
+    hintBtn.style.display = "none";
+
+    if (isCorrect) called++;
+    answered++;
+    updateScore();
+  }
+
+  function showHint() {
+    if (revealed) return;
+    hintBtn.style.display = "none";
+    hintText.classList.add("visible");
+  }
+
+  async function advance() {
+    if (advancing || !revealed) return;
+    advancing = true;
+    nextBtn.disabled = true;
+
+    round++;
+    updateScore();
+
+    showLoading();
+
+    try {
+      let data = nextReady;
+      nextReady = null;
+      if (!data && preloadPromise) {
+        try { data = await preloadPromise; } catch (_) {}
+      }
+      if (!data) {
+        data = await prepareRound(null);
+      }
+      applyRound(data);
+    } catch (e) {
+      showError(e.message || "Couldn't load next image.");
+      advancing = false;
+    }
+  }
+
+  // Photo tap does NOT reveal — ignore stage clicks except retry
+  hintBtn.addEventListener("click", function (e) {
+    e.stopPropagation();
+    showHint();
+  });
+
+  nextBtn.addEventListener("click", function () { advance(); });
+
+  retryBtn.addEventListener("click", function (e) {
+    e.stopPropagation();
+    loadInitial();
+  });
+
+  // Boot
+  loadInitial();
+})();
+</script>
+</body>
+</html>
