@@ -7,6 +7,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>Name That Private Jet</title>
+<meta name="description" content="Name that private jet — and helicopter — from ramp photos.">
 <style>
   :root {
     --bg: #0a1628;
@@ -599,6 +600,7 @@
     <div class="start-card">
       <p class="start-eyebrow">Trivia</p>
       <h2 class="start-title" id="startTitle">Name That Private Jet</h2>
+      <p class="start-sub" style="margin:0.35rem 0 0;opacity:0.75;font-size:0.95rem">jets &amp; helicopters</p>
       <p class="start-sub">How many can you call in a row? Enter your name and start the streak.</p>
       <label class="name-label" for="playerName">Your name</label>
       <input type="text" class="name-input" id="playerName" maxlength="24" autocomplete="nickname" placeholder="Pilot name" enterkeyhint="go">
@@ -623,6 +625,7 @@
   <div class="game-shell hidden-game" id="gameShell">
   <header class="header">
     <h1>Name That Jet</h1>
+    <p class="hdr-sub" style="margin:0;font-size:0.75rem;opacity:0.65">jets &amp; helicopters</p>
     <div class="score-wrap">
       <div class="score" id="score">Round 1 · <span class="called">0</span>/0 called</div>
       <div class="streak-badge" id="streakBadge">Streak <span class="n" id="streakVal">0</span></div>
@@ -690,6 +693,7 @@
     { manufacturer: "Gulfstream", displayName: "G450", sizeClass: "Large Cabin",
       hint: "Classic large-cabin Gulfstream with oval windows, PlaneView cockpit, and the familiar Gulfstream nose.",
       fact: "The G450 refined the GIV-SP with PlaneView avionics, more range, and cabin upgrades, becoming a charter and corporate staple.",
+            images: ["images/user/gulfstream-g450-01.jpg", "images/user/gulfstream-g450-02.jpg", "images/user/gulfstream-g450-03.jpg", "images/user/gulfstream-g450-04.jpg"],
       searchQueries: ["Gulfstream G450", "Gulfstream G450 aircraft"] },
     { manufacturer: "Gulfstream", displayName: "G500", sizeClass: "Large Cabin",
       hint: "Clean-sheet Gulfstream with a steeper windshield, larger oval windows, and Symmetry Flight Deck sidesticks.",
@@ -698,6 +702,7 @@
     { manufacturer: "Gulfstream", displayName: "G550", sizeClass: "Large Cabin",
       hint: "Seven oval windows per side and a classic Gulfstream nose; twin Rolls-Royce engines with no under-wing pylons.",
       fact: "The G550 was a NASA and special-mission favorite as well as a boardroom jet. Over 600 were built before the G500/G600 took over.",
+            images: ["images/user/gulfstream-g550-01.jpg", "images/user/gulfstream-g550-02.jpg", "images/user/gulfstream-g550-03.jpg", "images/user/gulfstream-g550-04.jpg"],
       searchQueries: ["Gulfstream G550", "Gulfstream GV-SP"] },
     { manufacturer: "Gulfstream", displayName: "G600", sizeClass: "Ultra-Long-Range",
       hint: "Longer sibling of the G500 with more windows and the same modern Symmetry Flight Deck nose.",
@@ -706,10 +711,12 @@
     { manufacturer: "Gulfstream", displayName: "G650", sizeClass: "Ultra-Long-Range",
       hint: "Tall oval windows and a long swept wing with large curved winglets — the iconic modern Gulfstream.",
       fact: "The G650 set multiple city-pair speed records and can fly New York–Tokyo nonstop, with a notably low cabin altitude at cruise.",
+            images: ["images/user/gulfstream-g650-01.jpg", "images/user/gulfstream-g650-02.jpg", "images/user/gulfstream-g650-03.jpg", "images/user/gulfstream-g650-04.jpg"],
       searchQueries: ["Gulfstream G650", "Gulfstream G650ER"] },
     { manufacturer: "Gulfstream", displayName: "G650ER", sizeClass: "Ultra-Long-Range",
       hint: "Looks nearly identical to a G650 — same tall windows and wing — but is the extended-range tanker-range sibling.",
       fact: "The G650ER adds fuel capacity for about 7,500 nm, enabling ultra-long city pairs that pushed competitors to answer.",
+            images: ["images/user/gulfstream-g650er-01.jpg", "images/user/gulfstream-g650er-02.jpg", "images/user/gulfstream-g650er-03.jpg", "images/user/gulfstream-g650er-04.jpg"],
       searchQueries: ["Gulfstream G650ER", "Gulfstream G650 ER"] },
     { manufacturer: "Gulfstream", displayName: "G700", sizeClass: "Ultra-Long-Range",
       hint: "Newest ultra-long Gulfstream with an even longer cabin and the latest winglet/nose styling of the G500 family lineage.",
@@ -722,6 +729,7 @@
     { manufacturer: "Gulfstream", displayName: "GIV / G400", sizeClass: "Large Cabin",
       hint: "Six oval windows per side and the classic Gulfstream wing with tip tanks or early winglets, depending on year.",
       fact: "The GIV introduced Gulfstream's first glass cockpit and became the template for a generation of large-cabin twins.",
+            images: ["images/user/giv-g400-01.jpg", "images/user/giv-g400-02.jpg", "images/user/giv-g400-03.jpg", "images/user/giv-g400-04.jpg"],
       searchQueries: ["Gulfstream GIV", "Gulfstream IV", "Gulfstream G400"] },
     { manufacturer: "Gulfstream", displayName: "GV / G500 (classic)", sizeClass: "Ultra-Long-Range",
       hint: "Earlier ultra-long Gulfstream with classic oval windows — predecessor look to the G550, not the new G500.",
@@ -736,6 +744,7 @@
     { manufacturer: "Bombardier", displayName: "Global 5000", sizeClass: "Large Cabin",
       hint: "Global-family Bombardier with a slightly shorter cabin than a 6000 and the classic Global nose.",
       fact: "The Global 5000 trimmed range versus the 6000 while keeping the wide Global cabin that owners love for continent-hopping.",
+            images: ["images/user/global-5000-01.jpg", "images/user/global-5000-02.jpg"],
       searchQueries: ["Bombardier Global 5000", "Global 5000"] },
     { manufacturer: "Bombardier", displayName: "Global 5500", sizeClass: "Large Cabin",
       hint: "Updated Global with new winglets and GE Passport engines — looks like a refreshed 5000.",
@@ -744,6 +753,7 @@
     { manufacturer: "Bombardier", displayName: "Global 6000", sizeClass: "Ultra-Long-Range",
       hint: "Long Global fuselage with many windows, T-tail, and the pre-7500 Global wing planform.",
       fact: "The Global 6000 became a workhorse of ultra-long-range charter and special-mission fleets worldwide.",
+            images: ["images/user/global-6000-01.jpg", "images/user/global-6000-02.jpg", "images/user/global-6000-03.jpg", "images/user/global-6000-04.jpg"],
       searchQueries: ["Bombardier Global 6000", "Global 6000"] },
     { manufacturer: "Bombardier", displayName: "Global 6500", sizeClass: "Ultra-Long-Range",
       hint: "Global 6000-shaped airframe with newer winglets and Passport engines — the 6000's modern twin.",
@@ -752,6 +762,7 @@
     { manufacturer: "Bombardier", displayName: "Global 7500", sizeClass: "Ultra-Long-Range",
       hint: "Very long fuselage with four living zones visible in the window count, and a distinctive high-aspect-ratio wing.",
       fact: "The Global 7500 was the first purpose-built four-zone ultra-long-range jet and briefly held the world's longest-range title.",
+            images: ["images/user/global-7500-01.jpg", "images/user/global-7500-02.jpg", "images/user/global-7500-03.jpg", "images/user/global-7500-04.jpg"],
       searchQueries: ["Bombardier Global 7500", "Global 7500"] },
     { manufacturer: "Bombardier", displayName: "Global 8000", sizeClass: "Ultra-Long-Range",
       hint: "Looks closely related to the 7500 — ultra-long Bombardier with the newest Global wing and cabin stretch cues.",
@@ -770,6 +781,7 @@
     { manufacturer: "Bombardier", displayName: "Challenger 350", sizeClass: "Super-Midsize",
       hint: "Wide oval fuselage, winglets, and a relatively short cabin compared with Globals — classic Challenger proportions.",
       fact: "The Challenger 350 refined the 300 with new engines, winglets, and a quieter cabin, becoming a best-seller.",
+            images: ["images/user/challenger-350-01.jpg"],
       searchQueries: ["Bombardier Challenger 350", "Challenger 350"] },
     { manufacturer: "Bombardier", displayName: "Challenger 3500", sizeClass: "Super-Midsize",
       hint: "Looks like a Challenger 350 with a refreshed cabin and newer Bombardier styling cues on the same airframe.",
@@ -884,6 +896,7 @@
     { manufacturer: "Embraer", displayName: "Phenom 300", sizeClass: "Light",
       hint: "Sleek Brazilian light jet with a slightly swept wing, winglets, and single-pilot-friendly eyebrow windows.",
       fact: "The Phenom 300 has repeatedly topped light-jet delivery charts for owners and fractional fleets.",
+            images: ["images/user/phenom-300-01.jpg"],
       searchQueries: ["Embraer Phenom 300", "Phenom 300"] },
     { manufacturer: "Embraer", displayName: "Praetor 500", sizeClass: "Midsize",
       hint: "Embraer midsize with distinctive winglets — shorter than a Praetor 600 but same family nose.",
@@ -922,6 +935,7 @@
     { manufacturer: "Dassault", displayName: "Falcon 7X", sizeClass: "Large Cabin",
       hint: "Three engines — two on the sides and one in the tail — plus a highly swept wing with curved winglets.",
       fact: "The Falcon 7X was the first fly-by-wire business jet and Dassault's answer to ultra-long-range twins.",
+            images: ["images/user/falcon-7x-01.jpg", "images/user/falcon-7x-02.jpg", "images/user/falcon-7x-03.jpg", "images/user/falcon-7x-04.jpg"],
       searchQueries: ["Dassault Falcon 7X", "Falcon 7X"] },
     { manufacturer: "Dassault", displayName: "Falcon 8X", sizeClass: "Ultra-Long-Range",
       hint: "Trijet like the 7X but with a longer fuselage and refined wingtips — count the windows.",
@@ -934,6 +948,7 @@
     { manufacturer: "Dassault", displayName: "Falcon 900", sizeClass: "Large Cabin",
       hint: "Three-engine Falcon with a shorter cabin than a 7X/8X and traditional Falcon proportions.",
       fact: "The Falcon 900's trijet design allows steep approaches into short or high airports that many twins avoid.",
+            images: ["images/user/falcon-900-01.jpg", "images/user/falcon-900-02.jpg", "images/user/falcon-900-03.jpg"],
       searchQueries: ["Dassault Falcon 900", "Falcon 900EX", "Falcon 900LX"] },
     { manufacturer: "Dassault", displayName: "Falcon 50", sizeClass: "Midsize",
       hint: "Classic three-engine Falcon with an older, shorter cabin and traditional Falcon wing without big curved winglets.",
@@ -1016,6 +1031,7 @@
     { manufacturer: "Bombardier", displayName: "CRJ (VIP / corporate)", sizeClass: "Large Cabin",
       hint: "Regional-jet fuselage in corporate colors — longer than a Challenger with airliner windows.",
       fact: "Many CRJ100/200/700 airframes serve as corporate shuttles, offering airliner space at business-jet operating bases.",
+            images: ["images/user/crj-vip-corporate-01.jpg"],
       searchQueries: ["Bombardier CRJ corporate", "CRJ200 VIP", "Canadair CRJ"] },
     { manufacturer: "Airbus", displayName: "ACJ320 / ACJ319", sizeClass: "Ultra-Long-Range",
       hint: "Airliner fuselage with VIP cabin windows and typically A320-family winglets — a true bizliner.",
@@ -1024,6 +1040,7 @@
     { manufacturer: "Boeing", displayName: "BBJ (737)", sizeClass: "Ultra-Long-Range",
       hint: "Boeing 737 fuselage in VIP paint — airliner size with winglets and corporate markings.",
       fact: "The Boeing Business Jet turns the 737 into a head-of-state and ultra-VIP platform with huge cabin volume.",
+            images: ["images/user/bbj-737-01.jpg"],
       searchQueries: ["Boeing Business Jet", "Boeing BBJ", "BBJ 737"] },
     { manufacturer: "IAI", displayName: "Westwind", sizeClass: "Light",
       hint: "Older Israeli light jet with tip tanks and a somewhat boxy fuselage — predecessor vibe to Astra/G100.",
@@ -1072,7 +1089,65 @@
     { manufacturer: "Cessna", displayName: "Citation V / Ultra", sizeClass: "Light",
       hint: "Stretched straight-wing Citation with tip tanks — a step up from the II/Bravo generation.",
       fact: "The Citation V and Ultra stretched cabin and performance for operators needing more than a Citation II.",
-      searchQueries: ["Cessna Citation V", "Citation Ultra", "Citation V Ultra"] }
+      searchQueries: ["Cessna Citation V", "Citation Ultra", "Citation V Ultra"] },
+    // --- Helicopters ---
+    { manufacturer: "Airbus Helicopters", displayName: "H125", sizeClass: "Helicopter", category: "helicopter",
+      hint: "Single-engine AStar / Écureuil with a slender fenestron-free tail boom and skids — classic light utility shape.",
+      fact: "The H125 (AS350 B3) is a high-hot legend, widely used for EMS, utility, and VIP work from mountain pads to city helipads.",
+      images: ["images/user/airbus-h125-01.jpg"],
+      searchQueries: ["Airbus H125", "Eurocopter AS350", "AS350 B3 helicopter"] },
+    { manufacturer: "Airbus Helicopters", displayName: "H135", sizeClass: "Helicopter", category: "helicopter",
+      hint: "Light twin with a shrouded Fenestron tail rotor and a compact cabin — common EMS configuration.",
+      fact: "The H135 (EC135) is a staple of air ambulance fleets thanks to its Fenestron, twin engines, and quiet urban manners.",
+      images: ["images/user/airbus-h135-01.jpg", "images/user/airbus-h135-02.jpg", "images/user/airbus-h135-03.jpg", "images/user/airbus-h135-04.jpg"],
+      searchQueries: ["Airbus H135", "Eurocopter EC135", "H135 helicopter"] },
+    { manufacturer: "Airbus Helicopters", displayName: "H145", sizeClass: "Helicopter", category: "helicopter",
+      hint: "Larger Airbus twin than an H135, often with sliding cabin doors and a Fenestron — roomy EMS/VIP cabin.",
+      fact: "The H145 (EC145 / BK117 family) offers a wide cabin and Fenestron, popular for EMS, corporate, and offshore support.",
+      images: ["images/user/airbus-h145-01.jpg", "images/user/airbus-h145-02.jpg"],
+      searchQueries: ["Airbus H145", "Eurocopter EC145", "H145 helicopter"] },
+    { manufacturer: "Sikorsky", displayName: "S-76", sizeClass: "Helicopter", category: "helicopter",
+      hint: "Sleek twin corporate helicopter with retractable gear and a conventional tail rotor — not a Fenestron.",
+      fact: "The Sikorsky S-76 has long been a VIP and offshore favorite, with a smooth fuselage and airline-like cabin feel.",
+      images: ["images/user/sikorsky-s-76-01.jpg"],
+      searchQueries: ["Sikorsky S-76", "Sikorsky S76 helicopter"] },
+    { manufacturer: "Bell", displayName: "407", sizeClass: "Helicopter", category: "helicopter",
+      hint: "Four-blade single-engine Bell with a conventional tail rotor and skids — light utility/VIP silhouette.",
+      fact: "The Bell 407 updated the JetRanger lineage with a four-blade rotor and remains popular for EMS and executive charter.",
+      searchQueries: ["Bell 407", "Bell 407 helicopter"] },
+    { manufacturer: "Bell", displayName: "429", sizeClass: "Helicopter", category: "helicopter",
+      hint: "Modern Bell light twin with a spacious cabin and conventional tail rotor — often EMS configured.",
+      fact: "The Bell 429 is a light twin designed for EMS and corporate missions with flat-floor cabin flexibility.",
+      searchQueries: ["Bell 429", "Bell 429 helicopter"] },
+    { manufacturer: "Leonardo", displayName: "AW109", sizeClass: "Helicopter", category: "helicopter",
+      hint: "Sleek Italian light twin with retractable gear and a pointed nose — corporate look.",
+      fact: "The AgustaWestland / Leonardo AW109 is a fast light twin favored for VIP and EMS with a sleek fuselage.",
+      searchQueries: ["Leonardo AW109", "AgustaWestland AW109", "AW109 helicopter"] },
+    { manufacturer: "Leonardo", displayName: "AW139", sizeClass: "Helicopter", category: "helicopter",
+      hint: "Larger medium twin with a high-set cabin and conventional tail rotor — common VIP/offshore type.",
+      fact: "The AW139 dominates medium twin VIP and offshore markets with a roomy cabin and strong hot-and-high performance.",
+      searchQueries: ["Leonardo AW139", "AgustaWestland AW139", "AW139 helicopter"] },
+    { manufacturer: "MD Helicopters", displayName: "MD 500", sizeClass: "Helicopter", category: "helicopter",
+      hint: "Egg-shaped light single with a NOTAR or conventional tail — tiny cabin, distinctive silhouette.",
+      fact: "The MD 500 family (including OH-6 lineage) is famous for agility; civil versions serve utility and law-enforcement roles.",
+      searchQueries: ["MD 500 helicopter", "MD500", "Hughes 500"] },
+    // --- Additional VIP jets from player library ---
+    { manufacturer: "Embraer", displayName: "ERJ-135 (VIP)", sizeClass: "Large Cabin",
+      hint: "Small regional-jet fuselage with rear engines and a T-tail — often in semi-private charter livery.",
+      fact: "VIP-configured ERJ-135s (including Aero and similar operators) bring airliner reliability to boutique charter routes.",
+      images: ["images/user/erj-135-vip-01.jpg", "images/user/erj-135-vip-02.jpg"],
+      searchQueries: ["Embraer ERJ-135", "ERJ 135 VIP", "Embraer Legacy 600"] },
+    { manufacturer: "Boeing", displayName: "BBJ 787", sizeClass: "Ultra-Long-Range",
+      hint: "Dreamliner bizliner with chevron engine nacelles and raked wingtips — much larger than a 737 BBJ.",
+      fact: "The Boeing 787 BBJ brings composite Dreamliner efficiency and ultra-long range to head-of-state and VIP fleets.",
+      images: ["images/user/bbj-787-01.jpg"],
+      searchQueries: ["Boeing 787 BBJ", "787 Business Jet", "Boeing 787 VIP"] },
+    { manufacturer: "Boeing", displayName: "757 (VIP)", sizeClass: "Ultra-Long-Range",
+      hint: "Long narrow-body with underwing engines and a tall tail — 757 VIP / corporate conversion look.",
+      fact: "VIP Boeing 757s stretch the classic narrow-body into intercontinental executive transports with huge cabins.",
+      images: ["images/user/boeing-757-vip-01.jpg"],
+      searchQueries: ["Boeing 757 VIP", "Boeing 757 private", "757 business jet"] }
+
   ];
 
 
@@ -1213,14 +1288,20 @@
     return a;
   }
 
+  function isHelicopter(t) {
+    return t.sizeClass === "Helicopter" || t.category === "helicopter";
+  }
+
   /**
    * Build 6 similar choices: correct + 5 distractors.
-   * Prefer same sizeClass, then same manufacturer, then rest of catalog.
-   * Never duplicate the correct type; shuffle so correct isn't always same slot.
+   * Keep helicopter rounds among helicopters and jet rounds among jets.
+   * Within that, prefer same sizeClass, then same manufacturer, then rest.
    */
   function buildChoices(correct) {
     const correctKey = typeKey(correct);
-    const pool = CATALOG.filter(t => typeKey(t) !== correctKey);
+    const heli = isHelicopter(correct);
+    const pool = CATALOG.filter(t => typeKey(t) !== correctKey && isHelicopter(t) === heli);
+    const fallback = CATALOG.filter(t => typeKey(t) !== correctKey);
 
     const sameSize = shuffle(pool.filter(t => t.sizeClass === correct.sizeClass));
     const sameMfr = shuffle(pool.filter(t =>
@@ -1246,11 +1327,10 @@
     takeFrom(sameSize, 5);
     takeFrom(sameMfr, 5);
     takeFrom(others, 5);
-
-    // If somehow short (tiny catalog), pad from remaining pool
-    if (picked.length < 5) {
-      takeFrom(shuffle(pool), 5);
-    }
+    // Pad within category first
+    if (picked.length < 5) takeFrom(shuffle(pool), 5);
+    // Only cross jet/heli if catalog too thin for 6 options
+    if (picked.length < 5) takeFrom(shuffle(fallback), 5);
 
     const choices = shuffle([correct].concat(picked.slice(0, 5)));
     return choices;
@@ -1414,7 +1494,7 @@
       return {
         title: type.displayName + " (local)",
         url: type.localImage,
-        artist: "Local photo",
+        artist: "Photo courtesy of player library",
         descriptionUrl: "#",
         registration: null
       };
@@ -1422,10 +1502,11 @@
     if (Array.isArray(type.images) && type.images.length) {
       const unused = type.images.filter(function (u) { return !usedFileTitles.has(u); });
       const pickUrl = (unused.length ? unused : type.images)[Math.floor(Math.random() * (unused.length || type.images.length))];
+      usedFileTitles.add(pickUrl);
       return {
-        title: type.displayName + " (local)",
+        title: type.displayName + " (player library)",
         url: pickUrl,
-        artist: "Local photo",
+        artist: "Photo courtesy of player library",
         descriptionUrl: "#",
         registration: null
       };
