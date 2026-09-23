@@ -109,7 +109,7 @@
     height: 100%;
     object-fit: cover;
     display: block;
-    transition: opacity 0.25s ease;
+    transition: opacity 0.15s ease;
   }
 
   .photo-stage img.hidden { opacity: 0; }
@@ -179,7 +179,7 @@
     -webkit-backdrop-filter: blur(16px);
     padding: 14px 16px 16px;
     transform: translateY(100%);
-    transition: transform 300ms cubic-bezier(0.22, 1, 0.36, 1);
+    transition: transform 180ms cubic-bezier(0.22, 1, 0.36, 1);
     border-top: 1px solid rgba(255,255,255,0.1);
   }
 
@@ -289,18 +289,18 @@
     opacity: 0.45;
   }
 
-  /* Fact + Next (post-answer) */
+  /* Fact + tap hint (post-answer) */
   .after-reveal {
     display: none;
     flex-direction: column;
-    gap: 14px;
-    animation: fadeIn 0.3s ease;
+    gap: 10px;
+    animation: fadeIn 0.15s ease;
   }
 
   .after-reveal.visible { display: flex; }
 
   @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(6px); }
+    from { opacity: 0; transform: translateY(4px); }
     to { opacity: 1; transform: translateY(0); }
   }
 
@@ -312,6 +312,25 @@
     padding: 12px 14px;
     border-radius: 10px;
     border: 1px solid var(--border);
+  }
+
+  .tap-hint {
+    display: none;
+    text-align: center;
+    font-size: 0.8rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    opacity: 0.85;
+    padding: 4px 0 2px;
+    pointer-events: none;
+  }
+
+  .tap-hint.visible { display: block; }
+
+  .main.can-advance {
+    cursor: pointer;
   }
 
   .btn {
@@ -330,12 +349,6 @@
 
   .btn:active:not(:disabled) { transform: scale(0.97); }
   .btn:disabled { opacity: 0.5; cursor: default; }
-
-  .btn-next {
-    background: var(--accent);
-    color: #fff;
-    width: 100%;
-  }
 
   /* Attribution — hidden until after answer (filename often leaks type) */
   .attrib {
@@ -642,7 +655,7 @@
 
     <div class="after-reveal" id="afterReveal">
       <p class="fact" id="fact"></p>
-      <button type="button" class="btn btn-next" id="nextBtn">Next</button>
+      <p class="tap-hint" id="tapHint">Tap anywhere to continue</p>
     </div>
 
     <p class="attrib" id="attrib"></p>
@@ -657,223 +670,411 @@
 
   /** @type {Array<{manufacturer:string, displayName:string, sizeClass:string, hint:string, fact:string, searchQueries:string[]}>} */
   const CATALOG = [
-    {
-      manufacturer: "Gulfstream",
-      displayName: "G650",
-      sizeClass: "Ultra-Long-Range",
-      hint: "Look for the tall oval windows and that long, swept wing with large curved winglets.",
-      fact: "The G650 set multiple city-pair speed records and can fly New York–Tokyo nonstop. Its 41,000-ft cabin altitude at cruise is among the lowest in business aviation.",
-      searchQueries: ["Gulfstream G650", "Gulfstream G650ER"]
-    },
-    {
-      manufacturer: "Gulfstream",
-      displayName: "G550",
-      sizeClass: "Large Cabin",
+    // --- Gulfstream ---
+    { manufacturer: "Gulfstream", displayName: "G150", sizeClass: "Light",
+      hint: "Small flat-floor Gulfstream with a pointed nose and winglets — looks like a stretched Astra.",
+      fact: "The G150 evolved from the IAI Astra/G100 line and was Gulfstream's last true light jet before the company focused on larger cabins.",
+      searchQueries: ["Gulfstream G150", "Gulfstream G150 aircraft"] },
+    { manufacturer: "Gulfstream", displayName: "G200", sizeClass: "Super-Midsize",
+      hint: "Super-midsize Gulfstream with a wide cabin cross-section and no G450-style oval windows — originally the Galaxy.",
+      fact: "Born as the IAI Galaxy, the G200 brought a wide-body cabin into the super-midsize class and paved the way for the G280.",
+      searchQueries: ["Gulfstream G200", "IAI Galaxy"] },
+    { manufacturer: "Gulfstream", displayName: "G280", sizeClass: "Super-Midsize",
+      hint: "Shorter Gulfstream fuselage with oval windows, T-tail, and rear-fuselage engines — not a G650 lookalike.",
+      fact: "Developed with Israel Aerospace Industries (as the G250), the G280 packs large-cabin DNA into a hot-and-high capable super-midsize.",
+      searchQueries: ["Gulfstream G280", "Gulfstream G250"] },
+    { manufacturer: "Gulfstream", displayName: "G350", sizeClass: "Large Cabin",
+      hint: "Large-cabin Gulfstream closely related to the G450 but typically with a shorter-range mission fit.",
+      fact: "The G350 shared the G450's PlaneView cockpit and cabin while targeting operators who did not need the G450's full range.",
+      searchQueries: ["Gulfstream G350", "Gulfstream G350 aircraft"] },
+    { manufacturer: "Gulfstream", displayName: "G450", sizeClass: "Large Cabin",
+      hint: "Classic large-cabin Gulfstream with oval windows, PlaneView cockpit, and the familiar Gulfstream nose.",
+      fact: "The G450 refined the GIV-SP with PlaneView avionics, more range, and cabin upgrades, becoming a charter and corporate staple.",
+      searchQueries: ["Gulfstream G450", "Gulfstream G450 aircraft"] },
+    { manufacturer: "Gulfstream", displayName: "G500", sizeClass: "Large Cabin",
+      hint: "Clean-sheet Gulfstream with a steeper windshield, larger oval windows, and Symmetry Flight Deck sidesticks.",
+      fact: "The G500 introduced Gulfstream's Symmetry Flight Deck and fly-by-wire controls in a large-cabin package shorter than the G600.",
+      searchQueries: ["Gulfstream G500", "Gulfstream G500 aircraft"] },
+    { manufacturer: "Gulfstream", displayName: "G550", sizeClass: "Large Cabin",
       hint: "Seven oval windows per side and a classic Gulfstream nose; twin Rolls-Royce engines with no under-wing pylons.",
-      fact: "The G550 was a NASA and special-mission favorite as well as a boardroom jet. Over 600 were built before production wound down in favor of the G500/G600 family.",
-      searchQueries: ["Gulfstream G550", "Gulfstream GV-SP"]
-    },
-    {
-      manufacturer: "Gulfstream",
-      displayName: "GIV / G400",
-      sizeClass: "Large Cabin",
+      fact: "The G550 was a NASA and special-mission favorite as well as a boardroom jet. Over 600 were built before the G500/G600 took over.",
+      searchQueries: ["Gulfstream G550", "Gulfstream GV-SP"] },
+    { manufacturer: "Gulfstream", displayName: "G600", sizeClass: "Ultra-Long-Range",
+      hint: "Longer sibling of the G500 with more windows and the same modern Symmetry Flight Deck nose.",
+      fact: "The G600 stretches the G500 airframe for ultra-long-range city pairs while keeping Gulfstream's fly-by-wire Symmetry cockpit.",
+      searchQueries: ["Gulfstream G600", "Gulfstream G600 aircraft"] },
+    { manufacturer: "Gulfstream", displayName: "G650", sizeClass: "Ultra-Long-Range",
+      hint: "Tall oval windows and a long swept wing with large curved winglets — the iconic modern Gulfstream.",
+      fact: "The G650 set multiple city-pair speed records and can fly New York–Tokyo nonstop, with a notably low cabin altitude at cruise.",
+      searchQueries: ["Gulfstream G650", "Gulfstream G650ER"] },
+    { manufacturer: "Gulfstream", displayName: "G650ER", sizeClass: "Ultra-Long-Range",
+      hint: "Looks nearly identical to a G650 — same tall windows and wing — but is the extended-range tanker-range sibling.",
+      fact: "The G650ER adds fuel capacity for about 7,500 nm, enabling ultra-long city pairs that pushed competitors to answer.",
+      searchQueries: ["Gulfstream G650ER", "Gulfstream G650 ER"] },
+    { manufacturer: "Gulfstream", displayName: "G700", sizeClass: "Ultra-Long-Range",
+      hint: "Newest ultra-long Gulfstream with an even longer cabin and the latest winglet/nose styling of the G500 family lineage.",
+      fact: "The G700 pairs a five-living-area cabin with Pearl 700 engines and Gulfstream's ultra-long-range mission capability.",
+      searchQueries: ["Gulfstream G700", "Gulfstream G700 aircraft"] },
+    { manufacturer: "Gulfstream", displayName: "G800", sizeClass: "Ultra-Long-Range",
+      hint: "Flagship Gulfstream with G650-family proportions stretched for maximum range — count the cabin windows.",
+      fact: "The G800 targets the longest Gulfstream missions with the G650ER's spirit and newer systems from the G700 program.",
+      searchQueries: ["Gulfstream G800", "Gulfstream G800 aircraft"] },
+    { manufacturer: "Gulfstream", displayName: "GIV / G400", sizeClass: "Large Cabin",
       hint: "Six oval windows per side and the classic Gulfstream wing with tip tanks or early winglets, depending on year.",
-      fact: "The GIV introduced Gulfstream's first glass cockpit and became the template for a generation of large-cabin twins. Later G400 branding was largely a market refresh of the same airframe family.",
-      searchQueries: ["Gulfstream GIV", "Gulfstream IV", "Gulfstream G400"]
-    },
-    {
-      manufacturer: "Gulfstream",
-      displayName: "G280",
-      sizeClass: "Super-Midsize",
-      hint: "Shorter Gulfstream fuselage with oval windows, T-tail, and engines mounted on the rear fuselage — not a G650 lookalike.",
-      fact: "Born from a collaboration with Israel Aerospace Industries (as the G250), the G280 packs large-cabin DNA into a super-midsize package with impressive hot-and-high performance.",
-      searchQueries: ["Gulfstream G280", "Gulfstream G250"]
-    },
-    {
-      manufacturer: "Bombardier",
-      displayName: "Global 7500",
-      sizeClass: "Ultra-Long-Range",
+      fact: "The GIV introduced Gulfstream's first glass cockpit and became the template for a generation of large-cabin twins.",
+      searchQueries: ["Gulfstream GIV", "Gulfstream IV", "Gulfstream G400"] },
+    { manufacturer: "Gulfstream", displayName: "GV / G500 (classic)", sizeClass: "Ultra-Long-Range",
+      hint: "Earlier ultra-long Gulfstream with classic oval windows — predecessor look to the G550, not the new G500.",
+      fact: "The GV opened true ultra-long-range business aviation in the 1990s; many still fly as GVs or upgraded G550-adjacent fleets.",
+      searchQueries: ["Gulfstream GV", "Gulfstream V aircraft"] },
+    { manufacturer: "Gulfstream", displayName: "GII / GIII", sizeClass: "Large Cabin",
+      hint: "Older Gulfstream with tip tanks, a more upright windshield, and fewer modern winglets than a GIV.",
+      fact: "The GII and GIII defined the large-cabin business jet era; surviving examples remain easy to spot with tip tanks.",
+      searchQueries: ["Gulfstream GII", "Gulfstream GIII", "Gulfstream II aircraft"] },
+
+    // --- Bombardier Global ---
+    { manufacturer: "Bombardier", displayName: "Global 5000", sizeClass: "Large Cabin",
+      hint: "Global-family Bombardier with a slightly shorter cabin than a 6000 and the classic Global nose.",
+      fact: "The Global 5000 trimmed range versus the 6000 while keeping the wide Global cabin that owners love for continent-hopping.",
+      searchQueries: ["Bombardier Global 5000", "Global 5000"] },
+    { manufacturer: "Bombardier", displayName: "Global 5500", sizeClass: "Large Cabin",
+      hint: "Updated Global with new winglets and GE Passport engines — looks like a refreshed 5000.",
+      fact: "The Global 5500 pairs Nuage seats and Bombardier's Vision flight deck updates with improved efficiency over the 5000.",
+      searchQueries: ["Bombardier Global 5500", "Global 5500"] },
+    { manufacturer: "Bombardier", displayName: "Global 6000", sizeClass: "Ultra-Long-Range",
+      hint: "Long Global fuselage with many windows, T-tail, and the pre-7500 Global wing planform.",
+      fact: "The Global 6000 became a workhorse of ultra-long-range charter and special-mission fleets worldwide.",
+      searchQueries: ["Bombardier Global 6000", "Global 6000"] },
+    { manufacturer: "Bombardier", displayName: "Global 6500", sizeClass: "Ultra-Long-Range",
+      hint: "Global 6000-shaped airframe with newer winglets and Passport engines — the 6000's modern twin.",
+      fact: "The Global 6500 updates the 6000 with GE Passport engines, new winglets, and Bombardier's latest cabin design language.",
+      searchQueries: ["Bombardier Global 6500", "Global 6500"] },
+    { manufacturer: "Bombardier", displayName: "Global 7500", sizeClass: "Ultra-Long-Range",
       hint: "Very long fuselage with four living zones visible in the window count, and a distinctive high-aspect-ratio wing.",
-      fact: "The Global 7500 was the first purpose-built four-zone ultra-long-range jet and briefly held the title of world's longest-range business aircraft at entry into service.",
-      searchQueries: ["Bombardier Global 7500", "Global 7500"]
-    },
-    {
-      manufacturer: "Bombardier",
-      displayName: "Global Express / XRS",
-      sizeClass: "Ultra-Long-Range",
+      fact: "The Global 7500 was the first purpose-built four-zone ultra-long-range jet and briefly held the world's longest-range title.",
+      searchQueries: ["Bombardier Global 7500", "Global 7500"] },
+    { manufacturer: "Bombardier", displayName: "Global 8000", sizeClass: "Ultra-Long-Range",
+      hint: "Looks closely related to the 7500 — ultra-long Bombardier with the newest Global wing and cabin stretch cues.",
+      fact: "The Global 8000 pushes Bombardier's flagship even farther, targeting the longest city pairs in the Global family.",
+      searchQueries: ["Bombardier Global 8000", "Global 8000"] },
+    { manufacturer: "Bombardier", displayName: "Global Express / XRS", sizeClass: "Ultra-Long-Range",
       hint: "Large Bombardier Global with a rounder nose and fewer windows than a 7500; twin rear engines and a tall T-tail.",
-      fact: "The Global Express pioneered the ultra-long-range category in the late 1990s. The XRS upgrade added range, a redesigned cabin, and better field performance.",
-      searchQueries: ["Bombardier Global Express", "Global Express XRS", "Bombardier Global 5000"]
-    },
-    {
-      manufacturer: "Bombardier",
-      displayName: "Challenger 350",
-      sizeClass: "Super-Midsize",
-      hint: "Wide oval fuselage cross-section, winglets, and a relatively short cabin compared with Globals — classic Challenger proportions.",
-      fact: "The Challenger 350 refined the 300 series with new engines, winglets, and a quieter cabin, becoming one of the best-selling super-midsize jets of its decade.",
-      searchQueries: ["Bombardier Challenger 350", "Challenger 350"]
-    },
-    {
-      manufacturer: "Bombardier",
-      displayName: "Challenger 605",
-      sizeClass: "Large Cabin",
-      hint: "Widebody Challenger with a flat-floor cabin feel and a more upright windshield than the Global family.",
-      fact: "The Challenger 600 series pioneered the widebody business jet. The 605 brought Rockwell Collins Pro Line 21 avionics and cabin upgrades to the classic airframe.",
-      searchQueries: ["Bombardier Challenger 605", "Challenger 605"]
-    },
-    {
-      manufacturer: "Cessna",
-      displayName: "Citation X",
-      sizeClass: "Super-Midsize",
-      hint: "Highly swept wing and a pointed nose — built to look fast even when parked.",
-      fact: "For years the Citation X was the world's fastest civilian aircraft outside Concorde territory, with a Mach 0.935 Mmo that still turns heads among pilots.",
-      searchQueries: ["Cessna Citation X", "Citation X"]
-    },
-    {
-      manufacturer: "Cessna",
-      displayName: "Citation Latitude",
-      sizeClass: "Midsize",
-      hint: "Flat-floor midsize cabin with a stand-up aisle and relatively large oval windows for a Citation.",
-      fact: "The Latitude brought a true flat floor and Garmin G5000 cockpit to Cessna's midsize lineup, bridging the gap between light Citations and the Longitude.",
-      searchQueries: ["Cessna Citation Latitude", "Citation Latitude"]
-    },
-    {
-      manufacturer: "Cessna",
-      displayName: "Citation Mustang",
-      sizeClass: "Very Light",
+      fact: "The Global Express pioneered the ultra-long-range category in the late 1990s; the XRS added range and cabin upgrades.",
+      searchQueries: ["Bombardier Global Express", "Global Express XRS"] },
+
+    // --- Bombardier Challenger ---
+    { manufacturer: "Bombardier", displayName: "Challenger 300", sizeClass: "Super-Midsize",
+      hint: "Wide Challenger fuselage, early winglets or tip treatments, shorter than a Global — classic 300-series look.",
+      fact: "The Challenger 300 created Bombardier's super-midsize franchise with a wide cabin and strong hot-and-high performance.",
+      searchQueries: ["Bombardier Challenger 300", "Challenger 300"] },
+    { manufacturer: "Bombardier", displayName: "Challenger 350", sizeClass: "Super-Midsize",
+      hint: "Wide oval fuselage, winglets, and a relatively short cabin compared with Globals — classic Challenger proportions.",
+      fact: "The Challenger 350 refined the 300 with new engines, winglets, and a quieter cabin, becoming a best-seller.",
+      searchQueries: ["Bombardier Challenger 350", "Challenger 350"] },
+    { manufacturer: "Bombardier", displayName: "Challenger 3500", sizeClass: "Super-Midsize",
+      hint: "Looks like a Challenger 350 with a refreshed cabin and newer Bombardier styling cues on the same airframe.",
+      fact: "The Challenger 3500 updates the 350 with a new cabin experience, autothrottle, and modern passenger connectivity.",
+      searchQueries: ["Bombardier Challenger 3500", "Challenger 3500"] },
+    { manufacturer: "Bombardier", displayName: "Challenger 600", sizeClass: "Large Cabin",
+      hint: "Widebody Challenger pioneer with a more upright windshield and classic 600-series proportions.",
+      fact: "The Challenger 600 series pioneered the widebody business jet and remains the root of today's Challenger large cabins.",
+      searchQueries: ["Bombardier Challenger 600", "Canadair Challenger"] },
+    { manufacturer: "Bombardier", displayName: "Challenger 605", sizeClass: "Large Cabin",
+      hint: "Widebody Challenger with Pro Line 21-era cockpit upgrades and the classic Challenger wide fuselage.",
+      fact: "The Challenger 605 brought Rockwell Collins Pro Line 21 avionics and cabin upgrades to the classic widebody airframe.",
+      searchQueries: ["Bombardier Challenger 605", "Challenger 605"] },
+    { manufacturer: "Bombardier", displayName: "Challenger 650", sizeClass: "Large Cabin",
+      hint: "Latest classic Challenger widebody — similar silhouette to a 605 with updated winglets and avionics.",
+      fact: "The Challenger 650 modernizes the 605 with new avionics, engines, and cabin appointments while keeping the wide cabin.",
+      searchQueries: ["Bombardier Challenger 650", "Challenger 650"] },
+
+    // --- Learjet ---
+    { manufacturer: "Bombardier Learjet", displayName: "Learjet 40", sizeClass: "Light",
+      hint: "Pointy Lear nose and delta fins, shorter cabin than a 45 — classic light Lear silhouette.",
+      fact: "The Learjet 40 offered a shorter-cabin take on the 45 platform for operators wanting Lear performance in a lighter package.",
+      searchQueries: ["Learjet 40", "Bombardier Learjet 40"] },
+    { manufacturer: "Bombardier Learjet", displayName: "Learjet 45", sizeClass: "Light",
+      hint: "Classic Learjet nose, delta fins under the tail, and a narrow fuselage — the mid-1990s Lear look.",
+      fact: "The Learjet 45 brought a clean-sheet cabin and systems update that defined Learjets for two decades.",
+      searchQueries: ["Learjet 45", "Bombardier Learjet 45"] },
+    { manufacturer: "Bombardier Learjet", displayName: "Learjet 60", sizeClass: "Midsize",
+      hint: "Longer Learjet with a more midsize cabin and the trademark pointed nose and delta fins.",
+      fact: "The Learjet 60 stretched performance into the midsize class while keeping unmistakable Learjet lines.",
+      searchQueries: ["Learjet 60", "Bombardier Learjet 60"] },
+    { manufacturer: "Bombardier Learjet", displayName: "Learjet 70", sizeClass: "Light",
+      hint: "Updated Lear 40/45 family look with canted winglets and Garmin-era cockpit cues.",
+      fact: "The Learjet 70 refreshed the 40XR line with winglets, new engines, and Garmin avionics before production ended.",
+      searchQueries: ["Learjet 70", "Bombardier Learjet 70"] },
+    { manufacturer: "Bombardier Learjet", displayName: "Learjet 75", sizeClass: "Light",
+      hint: "Pointy Learjet nose, delta fins, canted winglets — the final production Lear light jet.",
+      fact: "The Learjet 75 updated the 45 family with Garmin avionics, winglets, and new engines before Learjet production ceased in 2021.",
+      searchQueries: ["Learjet 75", "Bombardier Learjet 75"] },
+    { manufacturer: "Bombardier Learjet", displayName: "Learjet 31", sizeClass: "Light",
+      hint: "Smaller classic Lear with delta fins and a short cabin — earlier than the 45 generation.",
+      fact: "The Learjet 31 combined the Lear 35 wing with a Longhorn-style wing and remained a hot performer among light jets.",
+      searchQueries: ["Learjet 31", "Learjet 31A"] },
+    { manufacturer: "Bombardier Learjet", displayName: "Learjet 35", sizeClass: "Light",
+      hint: "Iconic tip-tank Learjet silhouette from the 1970s–80s — skinny fuselage and pointed nose.",
+      fact: "The Learjet 35 became one of the most recognizable business jets ever, widely used for corporate, ambulance, and military roles.",
+      searchQueries: ["Learjet 35", "Gates Learjet 35"] },
+
+    // --- Cessna Citation ---
+    { manufacturer: "Cessna", displayName: "Citation M2", sizeClass: "Very Light",
+      hint: "Very light Citation with a straight wing, T-tail, and Garmin G3000-era cockpit eyebrow windows.",
+      fact: "The Citation M2 modernized the CJ1 lineage with Garmin G3000 avionics and remains a popular entry-level jet.",
+      searchQueries: ["Cessna Citation M2", "Citation M2"] },
+    { manufacturer: "Cessna", displayName: "Citation CJ2", sizeClass: "Light",
+      hint: "Light Citation with a stretched CJ cabin, T-tail, and straight wing with tip tanks or small winglets.",
+      fact: "The CJ2 stretched the CJ1 formula for more passengers and range while keeping single-pilot certification appeal.",
+      searchQueries: ["Cessna Citation CJ2", "Citation CJ2+", "Citation CJ2"] },
+    { manufacturer: "Cessna", displayName: "Citation CJ3", sizeClass: "Light",
+      hint: "Longer CJ-series Citation than a CJ2, still with the classic T-tail light-jet look.",
+      fact: "The CJ3 (and CJ3+) became one of Cessna's best-selling light jets thanks to cabin length and efficient operations.",
+      searchQueries: ["Cessna Citation CJ3", "Citation CJ3+", "Citation CJ3"] },
+    { manufacturer: "Cessna", displayName: "Citation CJ4", sizeClass: "Light",
+      hint: "Largest CJ with a slightly swept wing and more jet-like proportions than earlier CJs.",
+      fact: "The CJ4 bridges light and midsize missions with a swept wing and the longest cabin in the CJ family.",
+      searchQueries: ["Cessna Citation CJ4", "Citation CJ4"] },
+    { manufacturer: "Cessna", displayName: "Citation Mustang", sizeClass: "Very Light",
       hint: "Tiny twinjet with a T-tail, small oval windows, and engines tucked close to the rear fuselage.",
-      fact: "The Mustang helped define the very-light-jet boom of the mid-2000s with simple systems and Garmin G1000 avionics before production ended in 2017.",
-      searchQueries: ["Cessna Citation Mustang", "Citation Mustang"]
-    },
-    {
-      manufacturer: "Embraer",
-      displayName: "Phenom 300",
-      sizeClass: "Light",
-      hint: "Sleek Brazilian light jet with a slightly swept wing, winglets, and a single-pilot-friendly cockpit eyebrow windows.",
-      fact: "The Phenom 300 has repeatedly topped light-jet delivery charts. Its clean-sheet design and strong climb performance made it a favorite of both owners and fractional fleets.",
-      searchQueries: ["Embraer Phenom 300", "Phenom 300"]
-    },
-    {
-      manufacturer: "Embraer",
-      displayName: "Phenom 100",
-      sizeClass: "Very Light",
-      hint: "Smaller sibling of the 300 — short cabin, T-tail, and those signature Embraer oval passenger windows.",
-      fact: "The Phenom 100 brought airline-derived engineering to the VLJ segment and later evolved into the Phenom 100EV with improved engines and avionics.",
-      searchQueries: ["Embraer Phenom 100", "Phenom 100"]
-    },
-    {
-      manufacturer: "Embraer",
-      displayName: "Praetor 600",
-      sizeClass: "Super-Midsize",
-      hint: "Longer Embraer business jet with distinctive winglets and a cabin that looks stretched compared with a Phenom.",
-      fact: "The Praetor 600 added range tanks and fly-by-wire spoilers to the Legacy 500 platform, giving it transatlantic capability rare in the super-midsize class.",
-      searchQueries: ["Embraer Praetor 600", "Praetor 600"]
-    },
-    {
-      manufacturer: "Embraer",
-      displayName: "Legacy 650",
-      sizeClass: "Large Cabin",
-      hint: "Airliner-derived Embraer with more windows than a purpose-built bizjet and a taller fuselage cross-section.",
-      fact: "Based on the ERJ-135 regional jet, the Legacy 650 offers a three-zone cabin and intercontinental range while keeping familiar Embraer systems.",
-      searchQueries: ["Embraer Legacy 650", "Legacy 650"]
-    },
-    {
-      manufacturer: "Dassault",
-      displayName: "Falcon 7X",
-      sizeClass: "Large Cabin",
-      hint: "Three engines — two on the sides and one in the tail — plus a highly swept wing with distinctive curved winglets.",
-      fact: "The Falcon 7X was the first fly-by-wire business jet and Dassault's answer to ultra-long-range twins, with a cabin quieter than many larger competitors.",
-      searchQueries: ["Dassault Falcon 7X", "Falcon 7X"]
-    },
-    {
-      manufacturer: "Dassault",
-      displayName: "Falcon 8X",
-      sizeClass: "Ultra-Long-Range",
-      hint: "Trijet like the 7X but with a longer fuselage and refined wingtips — count the windows if you can.",
-      fact: "The 8X stretches the 7X by about 3.5 feet, adds range, and offers more cabin customization while keeping Dassault's trademark three-engine layout.",
-      searchQueries: ["Dassault Falcon 8X", "Falcon 8X"]
-    },
-    {
-      manufacturer: "Dassault",
-      displayName: "Falcon 2000",
-      sizeClass: "Large Cabin",
-      hint: "Twin-engine Falcon with a wide cabin cross-section and no third tail engine — look for the classic Falcon nose.",
-      fact: "The Falcon 2000 family pairs a widebody-inspired cabin with efficient twin turbofans. Variants like the 2000LX and 2000LXS added blended winglets and longer legs.",
-      searchQueries: ["Dassault Falcon 2000", "Falcon 2000LX"]
-    },
-    {
-      manufacturer: "Dassault",
-      displayName: "Falcon 900",
-      sizeClass: "Large Cabin",
-      hint: "Three-engine Falcon with a shorter cabin than a 7X/8X and traditional straight-ish wingtips on older examples.",
-      fact: "The Falcon 900's trijet design allows steep approaches into short or high-altitude airports that twin heavy jets often avoid — a Dassault hallmark.",
-      searchQueries: ["Dassault Falcon 900", "Falcon 900EX"]
-    },
-    {
-      manufacturer: "Bombardier Learjet",
-      displayName: "Learjet 75",
-      sizeClass: "Light",
-      hint: "Pointy Learjet nose, delta fins under the tail, and a relatively narrow fuselage — the classic Lear silhouette.",
-      fact: "The Learjet 75 updated the 40/45 family with Garmin avionics, winglets, and new engines. Learjets defined the light-jet image for decades before production ended in 2021.",
-      searchQueries: ["Learjet 75", "Bombardier Learjet 75", "Learjet 45"]
-    },
-    {
-      manufacturer: "Hawker Beechcraft",
-      displayName: "Hawker 800XP",
-      sizeClass: "Midsize",
-      hint: "Midsize twin with a distinctive curved windshield and engines mounted fairly high on the rear fuselage.",
-      fact: "Descended from the British Aerospace 125, the Hawker 800XP was a workhorse of charter and corporate fleets thanks to a comfortable cabin and solid dispatch reliability.",
-      searchQueries: ["Hawker 800XP", "Hawker 800"]
-    },
-    {
-      manufacturer: "Beechcraft",
-      displayName: "King Air 350",
-      sizeClass: "Turboprop",
-      hint: "Twin turboprop with T-tail, wingtip tanks or winglets, and a squared-oval cabin cross-section — not a jet.",
-      fact: "The King Air 350 (later 350i/350ER) remains one of the most successful twin turboprops ever, prized for short-field access and lower operating costs than light jets.",
-      searchQueries: ["Beechcraft King Air 350", "King Air 350"]
-    },
-    {
-      manufacturer: "Honda Aircraft",
-      displayName: "HondaJet HA-420",
-      sizeClass: "Very Light",
-      hint: "Engines mounted on pylons above the wing — unique among production business jets — plus a smooth natural-laminar-flow nose.",
-      fact: "Honda's over-wing engine mount reduces cabin noise and frees fuselage volume. The HA-420 was the first aircraft Honda designed and built from scratch.",
-      searchQueries: ["HondaJet", "Honda HA-420", "HondaJet Elite"]
-    },
-    {
-      manufacturer: "Eclipse Aviation",
-      displayName: "Eclipse 500",
-      sizeClass: "Very Light",
+      fact: "The Mustang helped define the VLJ boom of the mid-2000s with simple systems and Garmin G1000 before ending in 2017.",
+      searchQueries: ["Cessna Citation Mustang", "Citation Mustang"] },
+    { manufacturer: "Cessna", displayName: "Citation Excel / XLS", sizeClass: "Midsize",
+      hint: "Midsize Citation with a stand-up cabin feel and straightish wing — XLS adds winglets on many examples.",
+      fact: "The Excel/XLS family dominates midsize charter fleets with a roomy cabin and strong short-field manners.",
+      searchQueries: ["Cessna Citation XLS", "Citation XLS+", "Citation Excel"] },
+    { manufacturer: "Cessna", displayName: "Citation Latitude", sizeClass: "Midsize",
+      hint: "Flat-floor midsize cabin with a stand-up aisle and relatively large oval windows for a Citation.",
+      fact: "The Latitude brought a true flat floor and Garmin G5000 cockpit to Cessna's midsize lineup.",
+      searchQueries: ["Cessna Citation Latitude", "Citation Latitude"] },
+    { manufacturer: "Cessna", displayName: "Citation Longitude", sizeClass: "Super-Midsize",
+      hint: "Larger Citation with a longer cabin than a Latitude and a more swept, modern wing.",
+      fact: "The Longitude is Cessna's clean-sheet super-midsize, aiming at transcontinental range with a spacious flat-floor cabin.",
+      searchQueries: ["Cessna Citation Longitude", "Citation Longitude"] },
+    { manufacturer: "Cessna", displayName: "Citation X", sizeClass: "Super-Midsize",
+      hint: "Highly swept wing and a pointed nose — built to look fast even when parked.",
+      fact: "For years the Citation X was the world's fastest civilian aircraft outside Concorde territory, with Mach 0.935 Mmo.",
+      searchQueries: ["Cessna Citation X", "Citation X"] },
+    { manufacturer: "Cessna", displayName: "Citation X+", sizeClass: "Super-Midsize",
+      hint: "Citation X look with updated winglets and a refreshed cockpit — still that extreme swept wing.",
+      fact: "The Citation X+ added winglets, new engines, and Garmin G5000 avionics to the world's former fastest bizjet.",
+      searchQueries: ["Cessna Citation X+", "Citation X+"] },
+    { manufacturer: "Cessna", displayName: "Citation Sovereign", sizeClass: "Super-Midsize",
+      hint: "Large Citation with a generous wing and midsize-plus cabin — less swept than a Citation X.",
+      fact: "The Sovereign (and Sovereign+) gave Cessna a super-midsize with excellent field performance and a comfortable cabin.",
+      searchQueries: ["Cessna Citation Sovereign", "Citation Sovereign"] },
+    { manufacturer: "Cessna", displayName: "Citation Ascend", sizeClass: "Midsize",
+      hint: "Newest XLS-family successor look — modern Citation midsize with updated wing and cabin styling.",
+      fact: "The Citation Ascend refreshes the XLS+ formula with new engines, a modern flight deck, and cabin upgrades.",
+      searchQueries: ["Cessna Citation Ascend", "Citation Ascend"] },
+    { manufacturer: "Cessna", displayName: "Citation III / VI / VII", sizeClass: "Midsize",
+      hint: "1980s–90s midsize Citation with a more pointed nose and older straight-wing Citation look.",
+      fact: "The Citation III family introduced Cessna to true midsize jets; VI and VII variants refined systems and engines.",
+      searchQueries: ["Cessna Citation III", "Citation VII", "Citation VI"] },
+    { manufacturer: "Cessna", displayName: "Citation II / Bravo", sizeClass: "Light",
+      hint: "Classic straight-wing Citation light jet — simple lines, T-tail, and tip tanks on many airframes.",
+      fact: "The Citation II and later Bravo trained generations of jet pilots and remain common on ramps worldwide.",
+      searchQueries: ["Cessna Citation II", "Citation Bravo", "Cessna Citation Bravo"] },
+
+    // --- Embraer ---
+    { manufacturer: "Embraer", displayName: "Phenom 100", sizeClass: "Very Light",
+      hint: "Small Embraer VLJ — short cabin, T-tail, and signature Embraer oval passenger windows.",
+      fact: "The Phenom 100 brought airline-derived engineering to the VLJ segment and later evolved into the Phenom 100EV.",
+      searchQueries: ["Embraer Phenom 100", "Phenom 100"] },
+    { manufacturer: "Embraer", displayName: "Phenom 300", sizeClass: "Light",
+      hint: "Sleek Brazilian light jet with a slightly swept wing, winglets, and single-pilot-friendly eyebrow windows.",
+      fact: "The Phenom 300 has repeatedly topped light-jet delivery charts for owners and fractional fleets.",
+      searchQueries: ["Embraer Phenom 300", "Phenom 300"] },
+    { manufacturer: "Embraer", displayName: "Praetor 500", sizeClass: "Midsize",
+      hint: "Embraer midsize with distinctive winglets — shorter than a Praetor 600 but same family nose.",
+      fact: "The Praetor 500 evolved from the Legacy 450 with improved range and the same fly-by-wire midsize platform.",
+      searchQueries: ["Embraer Praetor 500", "Praetor 500"] },
+    { manufacturer: "Embraer", displayName: "Praetor 600", sizeClass: "Super-Midsize",
+      hint: "Longer Embraer business jet with distinctive winglets and a stretched cabin versus a Phenom.",
+      fact: "The Praetor 600 added range tanks and fly-by-wire spoilers for rare transatlantic capability in the super-midsize class.",
+      searchQueries: ["Embraer Praetor 600", "Praetor 600"] },
+    { manufacturer: "Embraer", displayName: "Legacy 450", sizeClass: "Midsize",
+      hint: "Clean-sheet Embraer midsize with a modern nose and midsize window count — predecessor to Praetor 500.",
+      fact: "The Legacy 450 introduced Embraer's fly-by-wire midsize jet line before being evolved into the Praetor 500.",
+      searchQueries: ["Embraer Legacy 450", "Legacy 450"] },
+    { manufacturer: "Embraer", displayName: "Legacy 500", sizeClass: "Super-Midsize",
+      hint: "Stretched Legacy 450-family Embraer with more cabin length — predecessor look to the Praetor 600.",
+      fact: "The Legacy 500 offered a flat-floor cabin and fly-by-wire controls that set up Embraer's Praetor generation.",
+      searchQueries: ["Embraer Legacy 500", "Legacy 500"] },
+    { manufacturer: "Embraer", displayName: "Legacy 600", sizeClass: "Large Cabin",
+      hint: "Airliner-derived Embraer with more windows and a taller fuselage than purpose-built Phenoms.",
+      fact: "Based on the ERJ-135, the Legacy 600 brought airline DNA and a three-zone cabin to business aviation.",
+      searchQueries: ["Embraer Legacy 600", "Legacy 600"] },
+    { manufacturer: "Embraer", displayName: "Legacy 650", sizeClass: "Large Cabin",
+      hint: "Longer airliner-derived Embraer large cabin — similar to a 600 with more range cues and windows.",
+      fact: "The Legacy 650 extends the ERJ-based Legacy with more range and cabin refinement for intercontinental trips.",
+      searchQueries: ["Embraer Legacy 650", "Legacy 650"] },
+    { manufacturer: "Embraer", displayName: "Lineage 1000", sizeClass: "Ultra-Long-Range",
+      hint: "Very large Embraer bizliner with airliner fuselage and many windows — VIP E190 derivative.",
+      fact: "The Lineage 1000 converts the E190 airliner into a VIP shuttle with five cabin zones and huge baggage volume.",
+      searchQueries: ["Embraer Lineage 1000", "Lineage 1000"] },
+
+    // --- Dassault Falcon ---
+    { manufacturer: "Dassault", displayName: "Falcon 6X", sizeClass: "Large Cabin",
+      hint: "Newest twin Falcon with a very wide cabin cross-section and modern curved winglets — no third engine.",
+      fact: "The Falcon 6X offers one of the widest cabins in business aviation with ultra-efficient twin turbofans.",
+      searchQueries: ["Dassault Falcon 6X", "Falcon 6X"] },
+    { manufacturer: "Dassault", displayName: "Falcon 7X", sizeClass: "Large Cabin",
+      hint: "Three engines — two on the sides and one in the tail — plus a highly swept wing with curved winglets.",
+      fact: "The Falcon 7X was the first fly-by-wire business jet and Dassault's answer to ultra-long-range twins.",
+      searchQueries: ["Dassault Falcon 7X", "Falcon 7X"] },
+    { manufacturer: "Dassault", displayName: "Falcon 8X", sizeClass: "Ultra-Long-Range",
+      hint: "Trijet like the 7X but with a longer fuselage and refined wingtips — count the windows.",
+      fact: "The 8X stretches the 7X by about 3.5 feet, adds range, and keeps Dassault's trademark three-engine layout.",
+      searchQueries: ["Dassault Falcon 8X", "Falcon 8X"] },
+    { manufacturer: "Dassault", displayName: "Falcon 2000", sizeClass: "Large Cabin",
+      hint: "Twin-engine Falcon with a wide cabin and no third tail engine — classic Falcon nose.",
+      fact: "The Falcon 2000 family pairs a widebody-inspired cabin with efficient twins; LX/LXS variants added winglets.",
+      searchQueries: ["Dassault Falcon 2000", "Falcon 2000LX", "Falcon 2000EX"] },
+    { manufacturer: "Dassault", displayName: "Falcon 900", sizeClass: "Large Cabin",
+      hint: "Three-engine Falcon with a shorter cabin than a 7X/8X and traditional Falcon proportions.",
+      fact: "The Falcon 900's trijet design allows steep approaches into short or high airports that many twins avoid.",
+      searchQueries: ["Dassault Falcon 900", "Falcon 900EX", "Falcon 900LX"] },
+    { manufacturer: "Dassault", displayName: "Falcon 50", sizeClass: "Midsize",
+      hint: "Classic three-engine Falcon with an older, shorter cabin and traditional Falcon wing without big curved winglets.",
+      fact: "The Falcon 50 pioneered the three-engine business jet formula and remains a favorite of discerning operators.",
+      searchQueries: ["Dassault Falcon 50", "Falcon 50EX"] },
+    { manufacturer: "Dassault", displayName: "Falcon 10 / 100", sizeClass: "Light",
+      hint: "Small sleek Falcon with a pointed nose and smaller cabin — the mini-Falcon of the 1970s–80s.",
+      fact: "The Falcon 10 (later 100) was Dassault's light jet, famous for speed and the same elegant Falcon lines in miniature.",
+      searchQueries: ["Dassault Falcon 10", "Falcon 100", "Mystere Falcon 10"] },
+    { manufacturer: "Dassault", displayName: "Falcon 20 / 200", sizeClass: "Midsize",
+      hint: "Older twin Falcon with a more rounded fuselage and classic 1960s–80s business-jet proportions.",
+      fact: "The Falcon 20 was among the first true business jets and served both corporate and military roles for decades.",
+      searchQueries: ["Dassault Falcon 20", "Falcon 200", "Mystere Falcon 20"] },
+
+    // --- Honda / Eclipse / Cirrus / SyberJet ---
+    { manufacturer: "Honda Aircraft", displayName: "HondaJet HA-420", sizeClass: "Very Light",
+      hint: "Engines on pylons above the wing — unique among production business jets — plus a laminar-flow nose.",
+      fact: "Honda's over-wing engine mount reduces cabin noise and frees fuselage volume on the first Honda-designed aircraft.",
+      searchQueries: ["HondaJet", "Honda HA-420", "HondaJet Elite"] },
+    { manufacturer: "Eclipse Aviation", displayName: "Eclipse 500", sizeClass: "Very Light",
       hint: "Very small twinjet with tiny engines, a short cabin, and a somewhat blunt nose compared with a Mustang.",
-      fact: "The Eclipse 500 helped launch the VLJ concept but its maker went through bankruptcy. Surviving airframes and the later Eclipse 550 still turn heads at GA airports.",
-      searchQueries: ["Eclipse 500", "Eclipse Aviation 500"]
-    },
-    {
-      manufacturer: "Cirrus",
-      displayName: "Vision Jet SF50",
-      sizeClass: "Very Light",
-      hint: "Single jet engine on top of the fuselage, V-tail, and that huge panoramic windshield — plus a CAPS parachute.",
-      fact: "The Vision Jet is the first single-engine personal jet with a whole-aircraft parachute system. Its unique look makes it one of the easiest bizjets to spot on a ramp.",
-      searchQueries: ["Cirrus Vision Jet", "Cirrus SF50", "Vision SF50"]
-    },
-    {
-      manufacturer: "Pilatus",
-      displayName: "PC-24",
-      sizeClass: "Light",
-      hint: "Single door that doubles as a cargo hatch, straight wing with winglets, and a Swiss-clean fuselage — jet that can use short runways.",
-      fact: "Pilatus marketed the PC-24 as the \"super versatile jet\" — certified for unpaved runways with a cargo door large enough for a pallet, rare in the light-jet class.",
-      searchQueries: ["Pilatus PC-24", "PC-24"]
-    },
-    {
-      manufacturer: "Piaggio",
-      displayName: "Avanti",
-      sizeClass: "Turboprop",
-      hint: "Pusher turboprops on the wing, a forward canard-like wing, and a sleek dolphin fuselage — nothing else looks like it.",
-      fact: "The P.180 Avanti's three-lifting-surface design and pusher props give it jet-like cruise speeds with turboprop efficiency. Spotters rarely confuse it with anything else.",
-      searchQueries: ["Piaggio Avanti", "Piaggio P.180", "P.180 Avanti"]
-    }
+      fact: "The Eclipse 500 helped launch the VLJ concept; surviving airframes and the later 550 still turn heads.",
+      searchQueries: ["Eclipse 500", "Eclipse Aviation 500"] },
+    { manufacturer: "Eclipse Aerospace", displayName: "Eclipse 550", sizeClass: "Very Light",
+      hint: "Looks like an Eclipse 500 with updated avionics bumps — still one of the smallest twin jets.",
+      fact: "The Eclipse 550 revived the 500 design with improved avionics and systems after the original maker's bankruptcy.",
+      searchQueries: ["Eclipse 550", "Eclipse Aerospace 550"] },
+    { manufacturer: "Cirrus", displayName: "Vision Jet SF50", sizeClass: "Very Light",
+      hint: "Single jet engine on top of the fuselage, V-tail, and a huge panoramic windshield — plus CAPS parachute.",
+      fact: "The Vision Jet is the first single-engine personal jet with a whole-aircraft parachute system.",
+      searchQueries: ["Cirrus Vision Jet", "Cirrus SF50", "Vision SF50"] },
+    { manufacturer: "SyberJet", displayName: "SJ30", sizeClass: "Light",
+      hint: "Sleek light jet with a pointed nose and relatively long skinny fuselage — rare on most ramps.",
+      fact: "The SJ30 aims at high-speed light-jet performance; its development path spanned multiple companies before SyberJet.",
+      searchQueries: ["SyberJet SJ30", "SJ30 light jet", "Sino Swearingen SJ30"] },
+
+    // --- Pilatus / Piaggio / Beechcraft / Hawker ---
+    { manufacturer: "Pilatus", displayName: "PC-24", sizeClass: "Light",
+      hint: "Single door that doubles as a cargo hatch, straight wing with winglets, and a Swiss-clean fuselage.",
+      fact: "Pilatus markets the PC-24 as the \"super versatile jet\" — certified for unpaved runways with a large cargo door.",
+      searchQueries: ["Pilatus PC-24", "PC-24"] },
+    { manufacturer: "Piaggio", displayName: "Avanti", sizeClass: "Turboprop",
+      hint: "Pusher turboprops on the wing, a forward canard-like wing, and a sleek dolphin fuselage — unique.",
+      fact: "The P.180 Avanti's three-lifting-surface design gives jet-like cruise speeds with turboprop efficiency.",
+      searchQueries: ["Piaggio Avanti", "Piaggio P.180", "P.180 Avanti"] },
+    { manufacturer: "Beechcraft", displayName: "Premier I / IA", sizeClass: "Light",
+      hint: "Composite-fuselage light jet with a flat-floor cabin and Beechcraft T-tail — not a King Air.",
+      fact: "The Premier I used a composite fuselage for a stand-up cabin in the light-jet class, later refined as the Premier IA.",
+      searchQueries: ["Beechcraft Premier I", "Premier IA", "Raytheon Premier I"] },
+    { manufacturer: "Beechcraft", displayName: "King Air 350", sizeClass: "Turboprop",
+      hint: "Twin turboprop with T-tail, wingtip tanks or winglets, and a squared-oval cabin — not a jet.",
+      fact: "The King Air 350 remains one of the most successful twin turboprops, prized for short-field access and lower costs.",
+      searchQueries: ["Beechcraft King Air 350", "King Air 350"] },
+    { manufacturer: "Beechcraft", displayName: "King Air 250", sizeClass: "Turboprop",
+      hint: "Smaller King Air twin turboprop with T-tail — shorter than a 350 but same family look.",
+      fact: "The King Air 250 updated the B200 lineage with winglets, composite props, and modern avionics for owner-flown missions.",
+      searchQueries: ["Beechcraft King Air 250", "King Air 250"] },
+    { manufacturer: "Hawker Beechcraft", displayName: "Hawker 800XP", sizeClass: "Midsize",
+      hint: "Midsize twin with a distinctive curved windshield and engines mounted high on the rear fuselage.",
+      fact: "Descended from the BAe 125, the Hawker 800XP was a charter workhorse with a comfortable midsize cabin.",
+      searchQueries: ["Hawker 800XP", "Hawker 800"] },
+    { manufacturer: "Hawker Beechcraft", displayName: "Hawker 850XP", sizeClass: "Midsize",
+      hint: "Hawker 800XP look with winglets — curved windshield and high-mounted rear engines.",
+      fact: "The Hawker 850XP added winglets and avionics upgrades to the proven 800XP midsize platform.",
+      searchQueries: ["Hawker 850XP", "Hawker 850 XP"] },
+    { manufacturer: "Hawker Beechcraft", displayName: "Hawker 900XP", sizeClass: "Midsize",
+      hint: "Latest classic Hawker midsize — 800-family fuselage with winglets and updated systems.",
+      fact: "The Hawker 900XP was the final evolution of the 800 series with improved engines, winglets, and cabin amenities.",
+      searchQueries: ["Hawker 900XP", "Hawker 900 XP"] },
+    { manufacturer: "Hawker Beechcraft", displayName: "Hawker 4000", sizeClass: "Super-Midsize",
+      hint: "Composite-fuselage Hawker super-midsize with a more modern nose than an 800XP.",
+      fact: "The Hawker 4000 (Horizon) used a composite fuselage for a flat-floor cabin in the super-midsize segment.",
+      searchQueries: ["Hawker 4000", "Hawker Horizon"] },
+    { manufacturer: "Hawker Beechcraft", displayName: "Hawker 400XP", sizeClass: "Light",
+      hint: "Light Beechjet/Hawker with a pointed nose and T-tail — smaller than midsize Hawkers.",
+      fact: "Tracing to the Mitsubishi Diamond/Beechjet, the Hawker 400XP remained a popular light trainer and charter jet.",
+      searchQueries: ["Hawker 400XP", "Beechjet 400", "Beechcraft 400A"] },
+
+    // --- Other notable types ---
+    { manufacturer: "Bombardier", displayName: "CRJ (VIP / corporate)", sizeClass: "Large Cabin",
+      hint: "Regional-jet fuselage in corporate colors — longer than a Challenger with airliner windows.",
+      fact: "Many CRJ100/200/700 airframes serve as corporate shuttles, offering airliner space at business-jet operating bases.",
+      searchQueries: ["Bombardier CRJ corporate", "CRJ200 VIP", "Canadair CRJ"] },
+    { manufacturer: "Airbus", displayName: "ACJ320 / ACJ319", sizeClass: "Ultra-Long-Range",
+      hint: "Airliner fuselage with VIP cabin windows and typically A320-family winglets — a true bizliner.",
+      fact: "Airbus Corporate Jets convert A319/A320 family airliners into VIP transports with intercontinental range.",
+      searchQueries: ["Airbus ACJ320", "Airbus ACJ319", "Airbus Corporate Jet"] },
+    { manufacturer: "Boeing", displayName: "BBJ (737)", sizeClass: "Ultra-Long-Range",
+      hint: "Boeing 737 fuselage in VIP paint — airliner size with winglets and corporate markings.",
+      fact: "The Boeing Business Jet turns the 737 into a head-of-state and ultra-VIP platform with huge cabin volume.",
+      searchQueries: ["Boeing Business Jet", "Boeing BBJ", "BBJ 737"] },
+    { manufacturer: "IAI", displayName: "Westwind", sizeClass: "Light",
+      hint: "Older Israeli light jet with tip tanks and a somewhat boxy fuselage — predecessor vibe to Astra/G100.",
+      fact: "The IAI Westwind (developed from the Jet Commander) was a popular light jet before the Astra/G100/G150 line.",
+      searchQueries: ["IAI Westwind", "Israel Aircraft Westwind", "Westwind II"] },
+    { manufacturer: "IAI", displayName: "Astra / G100", sizeClass: "Light",
+      hint: "Swept-wing light jet from IAI/Gulfstream lineage — looks like a proto-G150.",
+      fact: "The Astra and later G100 bridged Westwind heritage to Gulfstream's light-jet era before the G150.",
+      searchQueries: ["IAI Astra", "Gulfstream G100", "Astra SPX"] },
+    { manufacturer: "Mitsubishi", displayName: "SpaceJet / MU-300 Diamond", sizeClass: "Light",
+      hint: "Light twinjet related to the Beechjet lineage — Diamond origins with a clean Japanese light-jet look.",
+      fact: "The MU-300 Diamond became the Beechjet 400; Mitsubishi's later SpaceJet program aimed at regional markets.",
+      searchQueries: ["Mitsubishi MU-300", "Diamond IA", "Beechjet Diamond"] },
+    { manufacturer: "Embraer", displayName: "EMB-120 Brasilia (VIP)", sizeClass: "Turboprop",
+      hint: "Twin turboprop regional with a T-tail — sometimes seen in corporate paint, not a King Air.",
+      fact: "Though designed as a regional airliner, EMB-120s occasionally serve corporate shuttle roles with cabin mods.",
+      searchQueries: ["Embraer EMB-120", "Brasilia aircraft", "EMB 120 Brasilia"] },
+    { manufacturer: "Fairchild Dornier", displayName: "328JET", sizeClass: "Light",
+      hint: "Small regional jet with a high wing and engines under the wing — unusual among bizjets.",
+      fact: "The 328JET brought a high-wing regional design into corporate and government fleets as a versatile small jet.",
+      searchQueries: ["Dornier 328JET", "328JET", "Fairchild Dornier 328JET"] },
+    { manufacturer: "British Aerospace", displayName: "BAe 125 / HS-125", sizeClass: "Midsize",
+      hint: "Classic British midsize twin — the ancestor look of the Hawker 800 series with curved windshield DNA.",
+      fact: "The HS.125 / BAe 125 family defined midsize business aviation for decades and evolved into the Hawker 800.",
+      searchQueries: ["BAe 125", "HS 125", "British Aerospace 125"] },
+    { manufacturer: "Lockheed", displayName: "JetStar", sizeClass: "Large Cabin",
+      hint: "Four-engine classic business jet with engines in the rear fuselage — unmistakable vintage look.",
+      fact: "The Lockheed JetStar was the first dedicated business jet in production, famous for four engines and VIP history.",
+      searchQueries: ["Lockheed JetStar", "JetStar II", "Lockheed L-1329"] },
+    { manufacturer: "Rockwell", displayName: "Sabreliner", sizeClass: "Light",
+      hint: "Military-trainer-derived twinjet with a pointed nose and straightish wing — classic 1960s–80s look.",
+      fact: "The Sabreliner served both as a military trainer and corporate transport, with a strong North American ramp presence.",
+      searchQueries: ["North American Sabreliner", "Rockwell Sabreliner", "Sabreliner 60"] },
+    { manufacturer: "Dassault", displayName: "Falcon 2000LXS", sizeClass: "Large Cabin",
+      hint: "Falcon 2000 family with blended winglets and the twin-engine Falcon nose — no third engine.",
+      fact: "The 2000LXS optimizes the Falcon 2000 line for shorter fields and efficient large-cabin missions.",
+      searchQueries: ["Falcon 2000LXS", "Dassault Falcon 2000LXS"] },
+    { manufacturer: "Gulfstream", displayName: "G100", sizeClass: "Light",
+      hint: "Gulfstream-branded Astra SPX — light swept-wing jet before the G150.",
+      fact: "Rebranded from the Astra SPX, the G100 extended IAI's light-jet line under the Gulfstream name.",
+      searchQueries: ["Gulfstream G100", "Astra SPX G100"] },
+    { manufacturer: "Cessna", displayName: "Citation Encore", sizeClass: "Light",
+      hint: "Straight-wing Citation light/midsize bridge with tip tanks — Ultra/Encore family look.",
+      fact: "The Citation Encore improved on the Ultra with new engines and systems while keeping classic Citation lines.",
+      searchQueries: ["Cessna Citation Encore", "Citation Encore", "Citation Ultra"] },
+    { manufacturer: "Cessna", displayName: "Citation V / Ultra", sizeClass: "Light",
+      hint: "Stretched straight-wing Citation with tip tanks — a step up from the II/Bravo generation.",
+      fact: "The Citation V and Ultra stretched cabin and performance for operators needing more than a Citation II.",
+      searchQueries: ["Cessna Citation V", "Citation Ultra", "Citation V Ultra"] }
   ];
+
 
   // --- Registration patterns from Commons filenames ---
   const REG_PATTERNS = [
@@ -914,6 +1115,39 @@
   const LS_BOARD = "nameThatJetLeaderboard";
   const LB_CAP = 20;
 
+  // --- Image / search caches (memory + sessionStorage) ---
+  const SS_SEARCH = "nameThatJetSearchCache_v1";
+  const searchCache = new Map(); // query -> simplified page candidates
+  const typePoolCache = new Map(); // typeKey -> simplified candidates[]
+  const inFlightQueries = new Map(); // query -> Promise
+
+  function restoreSearchCache() {
+    try {
+      const raw = sessionStorage.getItem(SS_SEARCH);
+      if (!raw) return;
+      const obj = JSON.parse(raw);
+      if (!obj || typeof obj !== "object") return;
+      Object.keys(obj).forEach(function (k) {
+        if (Array.isArray(obj[k])) searchCache.set(k, obj[k]);
+      });
+    } catch (e) { /* ignore */ }
+  }
+
+  function persistSearchCache() {
+    try {
+      const obj = {};
+      let n = 0;
+      searchCache.forEach(function (v, k) {
+        if (n >= 80) return; // cap sessionStorage size
+        obj[k] = v;
+        n++;
+      });
+      sessionStorage.setItem(SS_SEARCH, JSON.stringify(obj));
+    } catch (e) { /* quota / private mode */ }
+  }
+
+  restoreSearchCache();
+
   // --- State ---
   let deck = [];
   let deckIndex = 0;
@@ -925,6 +1159,8 @@
   let revealed = false;
   let advancing = false;
   let runEnded = false;
+  let canAdvance = false;
+  let loadGen = 0;
   let usedFileTitles = new Set();
   let current = null; // { type, image, registration }
   let nextReady = null; // preloaded round data
@@ -941,7 +1177,8 @@
   const choicesEl = document.getElementById("choices");
   const afterReveal = document.getElementById("afterReveal");
   const factEl = document.getElementById("fact");
-  const nextBtn = document.getElementById("nextBtn");
+  const tapHint = document.getElementById("tapHint");
+  const mainEl = document.querySelector(".main");
   const attrib = document.getElementById("attrib");
   const mfrEl = document.getElementById("mfr");
   const nameEl = document.getElementById("name");
@@ -1028,7 +1265,8 @@
       btn.className = "choice-btn";
       btn.textContent = labelFor(t);
       btn.dataset.key = typeKey(t);
-      btn.addEventListener("click", function () {
+      btn.addEventListener("click", function (e) {
+        e.stopPropagation();
         onChoose(t);
       });
       choicesEl.appendChild(btn);
@@ -1077,83 +1315,139 @@
       gsrlimit: "20",
       prop: "imageinfo",
       iiprop: "url|size|mime|extmetadata",
-      iiurlwidth: "1200"
+      iiurlwidth: "1000"
     });
     return COMMONS_API + "?" + params.toString();
   }
 
-  function isUsablePage(page) {
+  function simplifyPage(page) {
     const info = page.imageinfo && page.imageinfo[0];
-    if (!info) return false;
+    if (!info) return null;
     const mime = (info.mime || "").toLowerCase();
-    if (mime !== "image/jpeg" && mime !== "image/png") return false;
-    const title = (page.title || "").toLowerCase();
-    if (/logo|diagram|drawing|schematic|cutaway|silhouette|icon|svg/i.test(title)) return false;
-    return true;
+    if (mime !== "image/jpeg" && mime !== "image/png") return null;
+    const title = page.title || "";
+    if (/logo|diagram|drawing|schematic|cutaway|silhouette|icon|svg/i.test(title)) return null;
+    const meta = info.extmetadata || {};
+    const artistRaw = (meta.Artist && meta.Artist.value) || "";
+    return {
+      title: title,
+      mime: mime,
+      width: info.width || 0,
+      height: info.height || 0,
+      url: info.thumburl || info.url,
+      descriptionUrl: info.descriptionurl || ("https://commons.wikimedia.org/wiki/" + encodeURIComponent(title)),
+      artistRaw: artistRaw
+    };
   }
 
-  function scoreImage(page) {
-    const info = page.imageinfo[0];
+  function scoreCandidate(c) {
     let s = 0;
-    if (info.mime === "image/jpeg") s += 2;
-    if (info.width && info.height) {
-      if (info.width >= info.height) s += 5;
-      if (info.width >= 800) s += 2;
-      if (info.width >= 1200) s += 1;
+    if (c.mime === "image/jpeg") s += 2;
+    if (c.width && c.height) {
+      if (c.width >= c.height) s += 5;
+      if (c.width >= 800) s += 2;
+      if (c.width >= 1000) s += 1;
     }
-    const title = (page.title || "").toLowerCase();
+    const title = (c.title || "").toLowerCase();
     if (/airport|ramp|taxi|flying|inflight|in-flight|airborne|approach/i.test(title)) s += 1;
-    if (usedFileTitles.has(page.title)) s -= 20;
+    if (usedFileTitles.has(c.title)) s -= 20;
     return s;
   }
 
   async function fetchImagesForQuery(query) {
-    const url = buildApiUrl(query);
-    const res = await fetch(url);
-    if (!res.ok) throw new Error("Commons HTTP " + res.status);
-    const data = await res.json();
-    if (!data.query || !data.query.pages) return [];
-    return Object.values(data.query.pages).filter(isUsablePage);
+    if (searchCache.has(query)) return searchCache.get(query);
+    if (inFlightQueries.has(query)) return inFlightQueries.get(query);
+
+    const p = (async function () {
+      const url = buildApiUrl(query);
+      const res = await fetch(url);
+      if (!res.ok) throw new Error("Commons HTTP " + res.status);
+      const data = await res.json();
+      let list = [];
+      if (data.query && data.query.pages) {
+        list = Object.values(data.query.pages)
+          .map(simplifyPage)
+          .filter(Boolean);
+      }
+      searchCache.set(query, list);
+      persistSearchCache();
+      return list;
+    })();
+
+    inFlightQueries.set(query, p);
+    try {
+      return await p;
+    } finally {
+      inFlightQueries.delete(query);
+    }
+  }
+
+  async function loadCandidatesForType(type) {
+    const key = typeKey(type);
+    if (typePoolCache.has(key) && typePoolCache.get(key).length) {
+      return typePoolCache.get(key);
+    }
+
+    const results = await Promise.all(
+      type.searchQueries.map(function (q) {
+        return fetchImagesForQuery(q).catch(function () { return []; });
+      })
+    );
+
+    const seen = new Set();
+    const candidates = [];
+    results.forEach(function (pages) {
+      pages.forEach(function (c) {
+        if (seen.has(c.title)) return;
+        seen.add(c.title);
+        candidates.push(c);
+      });
+    });
+
+    typePoolCache.set(key, candidates);
+    return candidates;
   }
 
   async function findImageForType(type) {
-    let candidates = [];
-    for (const q of type.searchQueries) {
-      try {
-        const pages = await fetchImagesForQuery(q);
-        candidates = candidates.concat(pages);
-        if (candidates.length >= 3) break;
-      } catch (e) {
-        // try next query
-      }
+    // Optional local/user images (future): type.images or type.localImage
+    if (type.localImage) {
+      return {
+        title: type.displayName + " (local)",
+        url: type.localImage,
+        artist: "Local photo",
+        descriptionUrl: "#",
+        registration: null
+      };
     }
-    const seen = new Set();
-    candidates = candidates.filter(p => {
-      if (seen.has(p.title)) return false;
-      seen.add(p.title);
-      return true;
-    });
+    if (Array.isArray(type.images) && type.images.length) {
+      const unused = type.images.filter(function (u) { return !usedFileTitles.has(u); });
+      const pickUrl = (unused.length ? unused : type.images)[Math.floor(Math.random() * (unused.length || type.images.length))];
+      return {
+        title: type.displayName + " (local)",
+        url: pickUrl,
+        artist: "Local photo",
+        descriptionUrl: "#",
+        registration: null
+      };
+    }
 
-    let fresh = candidates.filter(p => !usedFileTitles.has(p.title));
-    if (!fresh.length) fresh = candidates;
-    if (!fresh.length) return null;
+    const candidates = await loadCandidatesForType(type);
+    if (!candidates.length) return null;
 
-    fresh.sort((a, b) => scoreImage(b) - scoreImage(a));
-    const topScore = scoreImage(fresh[0]);
-    const top = fresh.filter(p => scoreImage(p) >= topScore - 2);
+    let fresh = candidates.filter(function (c) { return !usedFileTitles.has(c.title); });
+    if (!fresh.length) fresh = candidates.slice();
+
+    fresh.sort(function (a, b) { return scoreCandidate(b) - scoreCandidate(a); });
+    const topScore = scoreCandidate(fresh[0]);
+    const top = fresh.filter(function (c) { return scoreCandidate(c) >= topScore - 2; });
     const pick = top[Math.floor(Math.random() * top.length)];
-    const info = pick.imageinfo[0];
-    const meta = info.extmetadata || {};
-    const artistRaw = (meta.Artist && meta.Artist.value) || "";
-    const artist = stripHtml(artistRaw) || "Unknown artist";
-    const fileUrl = info.thumburl || info.url;
-    const descUrl = info.descriptionurl || ("https://commons.wikimedia.org/wiki/" + encodeURIComponent(pick.title));
+    const artist = stripHtml(pick.artistRaw) || "Unknown artist";
 
     return {
       title: pick.title,
-      url: fileUrl,
+      url: pick.url,
       artist: artist,
-      descriptionUrl: descUrl,
+      descriptionUrl: pick.descriptionUrl,
       registration: parseRegistration(pick.title)
     };
   }
@@ -1165,18 +1459,31 @@
   }
 
   function preloadImage(url) {
-    return new Promise((resolve, reject) => {
+    return new Promise(function (resolve, reject) {
       const img = new Image();
-      img.onload = () => resolve(img);
-      img.onerror = () => reject(new Error("Image load failed"));
+      img.decoding = "async";
+      img.onload = function () { resolve(img); };
+      img.onerror = function () { reject(new Error("Image load failed")); };
       img.src = url;
     });
+  }
+
+  /** Warm Commons search cache for upcoming deck types (non-blocking). */
+  function warmUpcomingTypes(count) {
+    const n = count || 3;
+    let idx = deckIndex;
+    let warmed = 0;
+    while (warmed < n && idx < deck.length) {
+      const t = deck[idx++];
+      loadCandidatesForType(t).catch(function () {});
+      warmed++;
+    }
   }
 
   async function prepareRound(preferType) {
     const tried = new Set();
     let attempts = 0;
-    const maxAttempts = Math.min(8, CATALOG.length);
+    const maxAttempts = Math.min(10, CATALOG.length);
 
     while (attempts < maxAttempts) {
       attempts++;
@@ -1188,7 +1495,7 @@
         const image = await findImageForType(type);
         if (!image) continue;
         await preloadImage(image.url);
-        return { type, image, registration: image.registration };
+        return { type: type, image: image, registration: image.registration };
       } catch (e) {
         // try another type
       }
@@ -1325,12 +1632,27 @@
     revealed = false;
     advancing = false;
     runEnded = false;
+    canAdvance = false;
+    loadGen++;
     usedFileTitles = new Set();
     current = null;
     nextReady = null;
     preloadPromise = null;
     lastLbEntryId = null;
+    setAdvanceUi(false);
     updateScore();
+  }
+
+  function setAdvanceUi(on) {
+    canAdvance = !!on;
+    if (tapHint) {
+      if (on) tapHint.classList.add("visible");
+      else tapHint.classList.remove("visible");
+    }
+    if (mainEl) {
+      if (on) mainEl.classList.add("can-advance");
+      else mainEl.classList.remove("can-advance");
+    }
   }
 
   function showNameScreen() {
@@ -1371,6 +1693,7 @@
     nameEl.textContent = "";
     subEl.textContent = "";
     photo.alt = "Business aircraft";
+    setAdvanceUi(false);
   }
 
   function showLoading() {
@@ -1425,12 +1748,12 @@
     renderChoices(data.type);
 
     hintBtn.disabled = false;
-    nextBtn.disabled = false;
-    nextBtn.textContent = "Next";
     advancing = false;
+    setAdvanceUi(false);
     updateScore();
 
     startPreloadNext();
+    warmUpcomingTypes(3);
   }
 
   function escapeHtml(s) {
@@ -1446,23 +1769,31 @@
   }
 
   function startPreloadNext() {
+    nextReady = null;
+    const gen = loadGen;
     preloadPromise = prepareRound(null)
-      .then(data => {
+      .then(function (data) {
+        if (gen !== loadGen) return null;
         nextReady = data;
         return data;
       })
-      .catch(() => {
-        nextReady = null;
+      .catch(function () {
+        if (gen === loadGen) nextReady = null;
+        return null;
       });
   }
 
   async function loadInitial() {
+    const gen = ++loadGen;
     showLoading();
     refillDeck(null);
+    warmUpcomingTypes(4);
     try {
       const data = await prepareRound(null);
+      if (gen !== loadGen) return;
       applyRound(data);
     } catch (e) {
+      if (gen !== loadGen) return;
       showError(e.message || "Couldn't load image.");
     }
   }
@@ -1472,6 +1803,7 @@
       return;
     }
     revealed = true;
+    setAdvanceUi(false);
 
     const correctKey = typeKey(current.type);
     const selectedKey = typeKey(selected);
@@ -1506,15 +1838,21 @@
       called++;
       streak++;
       updateScore();
+      // Enable tap-to-continue after this click finishes (avoid bubble/double-tap)
+      requestAnimationFrame(function () {
+        setTimeout(function () {
+          if (revealed && !runEnded && !advancing) setAdvanceUi(true);
+        }, 100);
+      });
     } else {
       const finalStreak = streak; // streak before the miss
       streak = 0;
       updateScore();
-      nextBtn.disabled = true;
-      nextBtn.textContent = "Run over";
+      setAdvanceUi(false);
+      // Brief beat so player sees the wrong highlight, then leaderboard
       setTimeout(function () {
         endRun(finalStreak);
-      }, 650);
+      }, 400);
     }
   }
 
@@ -1525,9 +1863,10 @@
   }
 
   async function advance() {
-    if (advancing || !revealed || runEnded) return;
+    if (advancing || !revealed || runEnded || !canAdvance) return;
     advancing = true;
-    nextBtn.disabled = true;
+    setAdvanceUi(false);
+    const gen = ++loadGen;
 
     round++;
     updateScore();
@@ -1540,26 +1879,53 @@
       if (!data && preloadPromise) {
         try { data = await preloadPromise; } catch (_) {}
       }
+      if (gen !== loadGen) return;
       if (!data) {
         data = await prepareRound(null);
       }
+      if (gen !== loadGen) return;
       applyRound(data);
     } catch (e) {
+      if (gen !== loadGen) return;
       showError(e.message || "Couldn't load next image.");
       advancing = false;
     }
   }
 
-  // Photo tap does NOT reveal — ignore stage clicks except retry
+  function onTapAdvance(e) {
+    if (!canAdvance || !revealed || runEnded || advancing) return;
+    // Leaderboard / start overlays own the screen — never dismiss via body tap
+    if (!lbScreen.classList.contains("hidden")) return;
+    if (!startScreen.classList.contains("hidden")) return;
+    // Don't steal interactive controls (options already disabled; still protect links/retry)
+    const t = e.target;
+    if (t.closest && t.closest("a, button, input, .choice-btn, .lb-card, .start-card")) return;
+    advance();
+  }
+
+  // Choice clicks: stop bubbling so answer click never triggers advance
+  choicesEl.addEventListener("pointerup", function (e) { e.stopPropagation(); });
+  choicesEl.addEventListener("click", function (e) { e.stopPropagation(); });
+
   hintBtn.addEventListener("click", function (e) {
     e.stopPropagation();
     showHint();
   });
 
-  nextBtn.addEventListener("click", function () { advance(); });
+  // Tap / click anywhere on the game shell after a correct reveal advances
+  gameShell.addEventListener("pointerup", onTapAdvance);
+  // Keyboard: Space / Enter also advance when allowed
+  document.addEventListener("keydown", function (e) {
+    if (!canAdvance) return;
+    if (e.key === " " || e.key === "Enter") {
+      e.preventDefault();
+      advance();
+    }
+  });
 
   retryBtn.addEventListener("click", function (e) {
     e.stopPropagation();
+    loadGen++;
     loadInitial();
   });
 
