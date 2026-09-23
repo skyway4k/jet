@@ -1,15 +1,29 @@
 # Name That Private Jet
 
-Mobile-first trivia: identify business jets from live Wikimedia Commons photos.
+Mobile-first trivia: identify business jets (and a few helicopters) from exterior photos.
 
 **Play:** https://skyway4k.github.io/name-that-jet/
 
 ## Features
 
-- 6 multiple-choice options per round, optional hints, score
-- Name entry at start; current **streak** of consecutive correct answers
-- On a miss, your streak is saved to a local **leaderboard** (name + streak + date)
-- Spoiler-safe: Commons attribution and type-bearing image alt only after you answer
+- Expanded catalog (~108 types), 6 similar multiple-choice options, optional hints
+- Name entry at start; **streak** of consecutive correct answers
+- On a miss, streak saved to a local **leaderboard** (name + streak + date)
+- Tap anywhere after a correct answer to continue (no Continue button)
+- Spoiler-safe: attribution and type-bearing alt only after you answer
+- **Exterior photos only** (no cabin / cockpit / interior)
+
+## Photo loading (fast path)
+
+Rounds prefer, in order:
+
+1. **User-hosted exteriors** under `images/user/` (catalog `images` / `localImage`)
+2. **Baked Wikimedia Commons exterior thumbs** embedded in `index.html` (no Commons search API)
+3. **Live Commons search** — fallback only if a URL fails
+
+Upcoming rounds are preloaded aggressively, including during the name-entry screen.
+
+See `images/README.md` for adding more of your own exterior photos.
 
 ## Notes
 
