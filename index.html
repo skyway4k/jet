@@ -355,12 +355,265 @@
   }
 
   .attrib a:hover { color: var(--accent); }
+
+  .score-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 2px;
+  }
+
+  .streak-badge {
+    font-size: 0.75rem;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    color: var(--accent);
+  }
+
+  .streak-badge .n { color: var(--text); }
+
+  /* Start screen */
+  .screen-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 50;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: calc(20px + var(--safe-top)) 20px calc(20px + var(--safe-bottom));
+    background: rgba(6, 12, 24, 0.96);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+  }
+
+  .screen-overlay.hidden { display: none; }
+
+  .start-card, .lb-card {
+    width: 100%;
+    max-width: 400px;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 28px 22px 24px;
+    box-shadow: 0 16px 48px rgba(0,0,0,0.45);
+  }
+
+  .start-eyebrow {
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 8px;
+    text-align: center;
+  }
+
+  .start-title {
+    font-size: 1.55rem;
+    font-weight: 700;
+    text-align: center;
+    line-height: 1.2;
+    margin-bottom: 8px;
+  }
+
+  .start-sub {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    text-align: center;
+    margin-bottom: 22px;
+    line-height: 1.4;
+  }
+
+  .name-label {
+    display: block;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 8px;
+  }
+
+  .name-input {
+    width: 100%;
+    appearance: none;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 14px;
+    font-size: 1.05rem;
+    font-family: inherit;
+    font-weight: 600;
+    color: var(--text);
+    background: var(--surface);
+    outline: none;
+    margin-bottom: 14px;
+  }
+
+  .name-input:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-dim);
+  }
+
+  .name-input::placeholder { color: var(--text-muted); font-weight: 500; }
+
+  .name-error {
+    display: none;
+    font-size: 0.8rem;
+    color: var(--danger);
+    margin: -6px 0 12px;
+  }
+
+  .name-error.visible { display: block; }
+
+  .btn-primary {
+    background: var(--accent);
+    color: #fff;
+    width: 100%;
+  }
+
+  /* Leaderboard / end run */
+  .lb-card { max-height: min(90dvh, 640px); display: flex; flex-direction: column; }
+
+  .lb-result {
+    text-align: center;
+    margin-bottom: 18px;
+  }
+
+  .lb-result .miss-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--danger);
+    margin-bottom: 6px;
+  }
+
+  .lb-result .streak-final {
+    font-size: 2.4rem;
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+    line-height: 1.1;
+    color: var(--text);
+  }
+
+  .lb-result .streak-final span {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    display: block;
+    margin-top: 4px;
+  }
+
+  .lb-rank {
+    margin-top: 10px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--accent);
+  }
+
+  .lb-heading {
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 10px;
+  }
+
+  .lb-list {
+    list-style: none;
+    overflow-y: auto;
+    flex: 1;
+    min-height: 0;
+    margin-bottom: 16px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: var(--bg);
+  }
+
+  .lb-list li {
+    display: grid;
+    grid-template-columns: 36px 1fr auto;
+    gap: 8px;
+    align-items: center;
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--border);
+    font-size: 0.9rem;
+  }
+
+  .lb-list li:last-child { border-bottom: none; }
+
+  .lb-list li.you {
+    background: var(--accent-dim);
+    border-color: transparent;
+  }
+
+  .lb-list .rank {
+    font-variant-numeric: tabular-nums;
+    font-weight: 700;
+    color: var(--text-muted);
+    font-size: 0.8rem;
+  }
+
+  .lb-list .pname {
+    font-weight: 600;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .lb-list .pstreak {
+    font-variant-numeric: tabular-nums;
+    font-weight: 700;
+    color: var(--success);
+  }
+
+  .lb-empty {
+    padding: 20px 12px;
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 0.9rem;
+  }
+
+  .game-shell.hidden-game {
+    visibility: hidden;
+    pointer-events: none;
+  }
 </style>
 </head>
 <body>
+  <div class="screen-overlay" id="startScreen" role="dialog" aria-labelledby="startTitle">
+    <div class="start-card">
+      <p class="start-eyebrow">Trivia</p>
+      <h2 class="start-title" id="startTitle">Name That Private Jet</h2>
+      <p class="start-sub">How many can you call in a row? Enter your name and start the streak.</p>
+      <label class="name-label" for="playerName">Your name</label>
+      <input type="text" class="name-input" id="playerName" maxlength="24" autocomplete="nickname" placeholder="Pilot name" enterkeyhint="go">
+      <p class="name-error" id="nameError">Enter a name to play.</p>
+      <button type="button" class="btn btn-primary" id="startBtn">Start</button>
+    </div>
+  </div>
+
+  <div class="screen-overlay hidden" id="lbScreen" role="dialog" aria-labelledby="lbTitle">
+    <div class="lb-card">
+      <div class="lb-result">
+        <p class="miss-label" id="lbTitle">Streak ended</p>
+        <p class="streak-final" id="lbStreakFinal">0<span>in a row</span></p>
+        <p class="lb-rank" id="lbRank"></p>
+      </div>
+      <p class="lb-heading">Longest streaks</p>
+      <ul class="lb-list" id="lbList"></ul>
+      <button type="button" class="btn btn-primary" id="playAgainBtn">Play again</button>
+    </div>
+  </div>
+
+  <div class="game-shell hidden-game" id="gameShell">
   <header class="header">
     <h1>Name That Jet</h1>
-    <div class="score" id="score">Round 1 · <span class="called">0</span>/0 called</div>
+    <div class="score-wrap">
+      <div class="score" id="score">Round 1 · <span class="called">0</span>/0 called</div>
+      <div class="streak-badge" id="streakBadge">Streak <span class="n" id="streakVal">0</span></div>
+    </div>
   </header>
 
   <main class="main">
@@ -394,6 +647,7 @@
 
     <p class="attrib" id="attrib"></p>
   </main>
+  </div>
 
 <script>
 (function () {
@@ -655,23 +909,33 @@
     /\bZS-[A-Z]{3}\b/i
   ];
 
+  // --- Persistence ---
+  const LS_NAME = "nameThatJetPlayerName";
+  const LS_BOARD = "nameThatJetLeaderboard";
+  const LB_CAP = 20;
+
   // --- State ---
   let deck = [];
   let deckIndex = 0;
   let round = 1;
   let called = 0;
   let answered = 0;
+  let streak = 0;
+  let playerName = "";
   let revealed = false;
   let advancing = false;
+  let runEnded = false;
   let usedFileTitles = new Set();
   let current = null; // { type, image, registration }
   let nextReady = null; // preloaded round data
   let preloadPromise = null;
+  let lastLbEntryId = null;
 
   // --- DOM ---
   const stage = document.getElementById("stage");
   const photo = document.getElementById("photo");
   const scoreEl = document.getElementById("score");
+  const streakVal = document.getElementById("streakVal");
   const hintBtn = document.getElementById("hintBtn");
   const hintText = document.getElementById("hintText");
   const choicesEl = document.getElementById("choices");
@@ -684,6 +948,16 @@
   const subEl = document.getElementById("sub");
   const retryBtn = document.getElementById("retryBtn");
   const errorMsg = document.getElementById("errorMsg");
+  const startScreen = document.getElementById("startScreen");
+  const lbScreen = document.getElementById("lbScreen");
+  const gameShell = document.getElementById("gameShell");
+  const playerNameInput = document.getElementById("playerName");
+  const nameError = document.getElementById("nameError");
+  const startBtn = document.getElementById("startBtn");
+  const playAgainBtn = document.getElementById("playAgainBtn");
+  const lbStreakFinal = document.getElementById("lbStreakFinal");
+  const lbRank = document.getElementById("lbRank");
+  const lbList = document.getElementById("lbList");
 
   function typeKey(t) {
     return t.manufacturer + "|" + t.displayName;
@@ -925,6 +1199,165 @@
   function updateScore() {
     scoreEl.innerHTML =
       "Round " + round + " · <span class=\"called\">" + called + "</span>/" + answered + " called";
+    if (streakVal) streakVal.textContent = String(streak);
+  }
+
+  function loadLeaderboard() {
+    try {
+      const raw = localStorage.getItem(LS_BOARD);
+      if (!raw) return [];
+      const arr = JSON.parse(raw);
+      return Array.isArray(arr) ? arr : [];
+    } catch (e) {
+      return [];
+    }
+  }
+
+  function saveLeaderboard(entries) {
+    localStorage.setItem(LS_BOARD, JSON.stringify(entries.slice(0, LB_CAP)));
+  }
+
+  function sortBoard(entries) {
+    return entries.slice().sort(function (a, b) {
+      if (b.streak !== a.streak) return b.streak - a.streak;
+      const da = a.date || "";
+      const db = b.date || "";
+      return db < da ? -1 : db > da ? 1 : 0;
+    });
+  }
+
+  function appendStreakEntry(name, streakLen) {
+    if (!streakLen || streakLen < 1) return null;
+    const entry = {
+      id: Date.now().toString(36) + Math.random().toString(36).slice(2, 8),
+      name: name,
+      streak: streakLen,
+      date: new Date().toISOString()
+    };
+    const board = sortBoard(loadLeaderboard().concat([entry]));
+    saveLeaderboard(board);
+    return entry;
+  }
+
+  /** Rank among board entries for a given streak (1-based), with tie note. */
+  function describeRank(board, streakLen) {
+    if (!board.length) return { label: "", rank: 0, total: 0 };
+    let rank = 1;
+    for (let i = 0; i < board.length; i++) {
+      if (board[i].streak > streakLen) rank = i + 2;
+      else break;
+    }
+    // Recount properly: rank = 1 + number of entries with strictly higher streak
+    rank = 1;
+    for (const e of board) {
+      if (e.streak > streakLen) rank++;
+    }
+    const total = board.length;
+    const same = board.filter(function (e) { return e.streak === streakLen; }).length;
+    let label;
+    if (same > 1) {
+      label = "Tied for #" + rank + " of " + total;
+    } else {
+      label = "#" + rank + " of " + total;
+    }
+    return { label: label, rank: rank, total: total };
+  }
+
+  function renderLeaderboard(highlightId) {
+    const board = sortBoard(loadLeaderboard());
+    lbList.innerHTML = "";
+    if (!board.length) {
+      const empty = document.createElement("li");
+      empty.className = "lb-empty";
+      empty.style.display = "block";
+      empty.textContent = "No streaks yet — get one right to start the board.";
+      lbList.appendChild(empty);
+      return board;
+    }
+    board.forEach(function (e, i) {
+      const li = document.createElement("li");
+      if (highlightId && e.id === highlightId) li.className = "you";
+      const rank = document.createElement("span");
+      rank.className = "rank";
+      rank.textContent = "#" + (i + 1);
+      const pn = document.createElement("span");
+      pn.className = "pname";
+      pn.textContent = e.name;
+      const ps = document.createElement("span");
+      ps.className = "pstreak";
+      ps.textContent = e.streak;
+      li.appendChild(rank);
+      li.appendChild(pn);
+      li.appendChild(ps);
+      lbList.appendChild(li);
+    });
+    return board;
+  }
+
+  function endRun(finalStreak) {
+    if (runEnded) return;
+    runEnded = true;
+    lastLbEntryId = null;
+    let board;
+    if (finalStreak > 0) {
+      const entry = appendStreakEntry(playerName, finalStreak);
+      lastLbEntryId = entry && entry.id;
+      board = sortBoard(loadLeaderboard());
+      const info = describeRank(board, finalStreak);
+      lbRank.textContent = info.label;
+    } else {
+      board = sortBoard(loadLeaderboard());
+      lbRank.textContent = board.length
+        ? "No streak this run · board has " + board.length
+        : "No streak recorded";
+    }
+    lbStreakFinal.innerHTML = String(finalStreak) + "<span>in a row</span>";
+    renderLeaderboard(lastLbEntryId);
+    lbScreen.classList.remove("hidden");
+    // Leave game visible underneath; overlay covers it
+  }
+
+  function resetRunState() {
+    round = 1;
+    called = 0;
+    answered = 0;
+    streak = 0;
+    revealed = false;
+    advancing = false;
+    runEnded = false;
+    usedFileTitles = new Set();
+    current = null;
+    nextReady = null;
+    preloadPromise = null;
+    lastLbEntryId = null;
+    updateScore();
+  }
+
+  function showNameScreen() {
+    lbScreen.classList.add("hidden");
+    startScreen.classList.remove("hidden");
+    gameShell.classList.add("hidden-game");
+    nameError.classList.remove("visible");
+    const saved = (localStorage.getItem(LS_NAME) || "").trim();
+    playerNameInput.value = saved;
+    try { playerNameInput.focus(); } catch (e) {}
+  }
+
+  function beginPlay() {
+    const name = (playerNameInput.value || "").trim();
+    if (!name) {
+      nameError.classList.add("visible");
+      playerNameInput.focus();
+      return;
+    }
+    nameError.classList.remove("visible");
+    playerName = name;
+    localStorage.setItem(LS_NAME, name);
+    startScreen.classList.add("hidden");
+    lbScreen.classList.add("hidden");
+    gameShell.classList.remove("hidden-game");
+    resetRunState();
+    loadInitial();
   }
 
   function clearAnswerUi() {
@@ -993,6 +1426,7 @@
 
     hintBtn.disabled = false;
     nextBtn.disabled = false;
+    nextBtn.textContent = "Next";
     advancing = false;
     updateScore();
 
@@ -1067,9 +1501,21 @@
     // Hide hint button after answer; leave hint text if already shown
     hintBtn.style.display = "none";
 
-    if (isCorrect) called++;
     answered++;
-    updateScore();
+    if (isCorrect) {
+      called++;
+      streak++;
+      updateScore();
+    } else {
+      const finalStreak = streak; // streak before the miss
+      streak = 0;
+      updateScore();
+      nextBtn.disabled = true;
+      nextBtn.textContent = "Run over";
+      setTimeout(function () {
+        endRun(finalStreak);
+      }, 650);
+    }
   }
 
   function showHint() {
@@ -1079,7 +1525,7 @@
   }
 
   async function advance() {
-    if (advancing || !revealed) return;
+    if (advancing || !revealed || runEnded) return;
     advancing = true;
     nextBtn.disabled = true;
 
@@ -1117,8 +1563,19 @@
     loadInitial();
   });
 
-  // Boot
-  loadInitial();
+  startBtn.addEventListener("click", function () { beginPlay(); });
+  playerNameInput.addEventListener("keydown", function (e) {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      beginPlay();
+    }
+  });
+  playAgainBtn.addEventListener("click", function () {
+    showNameScreen();
+  });
+
+  // Boot — name screen first; game loads after Start
+  showNameScreen();
 })();
 </script>
 </body>
