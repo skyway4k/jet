@@ -2,16 +2,17 @@
 
 Mobile-first trivia: identify business jets (and a few helicopters) from exterior photos.
 
-**Play:** https://skyway4k.github.io/name-that-jet/
+**Play:** https://skyway4k.github.io/jet/
 
 ## Features
 
 - Expanded catalog (~108 types), 6 similar multiple-choice options, optional hints
+- **Family uniqueness:** distractors never include a near-variant of the correct type (e.g. Global 6500 will not appear with Global 6000/7500; G650 not with G650ER; Falcon 7X not with 8X)
 - Name entry at start; **streak** of consecutive correct answers
 - On a miss, streak saved to a local **leaderboard** (name + streak + date)
 - Tap anywhere after a correct answer to continue (no Continue button)
 - Spoiler-safe: attribution and type-bearing alt only after you answer
-- **Exterior photos only** (no cabin / cockpit / interior)
+- **Exterior photos only** — prefer **side / 3/4 profile** views with **exactly one aircraft** in frame
 
 ## Photo loading (fast path)
 
@@ -29,4 +30,4 @@ See `images/README.md` for adding more of your own exterior photos.
 
 Player name and leaderboard live in **browser `localStorage`** (`nameThatJetPlayerName`, `nameThatJetLeaderboard`). They are per-device / per-browser — not synced across phones or private windows.
 
-Single self-contained `index.html` — no build step. GitHub Pages serves from `main`.
+Single self-contained `index.html` — no build step. GitHub Pages serves from `main` at `/jet/`.

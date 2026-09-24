@@ -1,6 +1,9 @@
 # Exterior jet & helicopter photos
 
-**Game rule:** exterior airframe views only — no cabin, galley, cockpit, or interior.
+**Game rules:**
+- Exterior airframe views only — no cabin, galley, cockpit, or interior
+- Prefer **side or clear 3/4 profile** showing fuselage windows + engines + tail
+- **Exactly one aircraft** in frame (no multi-aircraft ramps; no prominent second jet)
 
 ## Current layout
 
