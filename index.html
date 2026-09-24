@@ -26,6 +26,7 @@
     --safe-top: env(safe-area-inset-top, 0px);
     --safe-bottom: env(safe-area-inset-bottom, 0px);
     --radius: 12px;
+    --shell-max: 1440px;
   }
 
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -43,17 +44,36 @@
   body {
     display: flex;
     flex-direction: column;
-    max-width: 480px;
-    margin: 0 auto;
+    margin: 0;
     min-height: 100dvh;
+    height: 100dvh;
+    max-height: 100dvh;
+    overflow: hidden;
+  }
+
+  /* Game shell — full viewport, centered on wide screens */
+  .game-shell {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+    width: 100%;
+    max-width: var(--shell-max);
+    margin: 0 auto;
+    height: 100%;
+  }
+
+  .game-shell.hidden-game {
+    visibility: hidden;
+    pointer-events: none;
   }
 
   /* Header */
   .header {
-    position: sticky;
-    top: 0;
+    flex-shrink: 0;
+    position: relative;
     z-index: 20;
-    padding: calc(12px + var(--safe-top)) 16px 12px;
+    padding: calc(10px + var(--safe-top)) 20px 10px;
     background: rgba(10,22,40,0.92);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
@@ -65,11 +85,15 @@
   }
 
   .header h1 {
-    font-size: 0.7rem;
+    font-size: 0.75rem;
     font-weight: 600;
     letter-spacing: 0.08em;
     text-transform: uppercase;
     color: var(--text-muted);
+  }
+
+  .hdr-sub {
+    display: none;
   }
 
   .score {
@@ -81,20 +105,25 @@
 
   .score .called { color: var(--success); }
 
-  /* Main */
+  /* Main stage */
   .main {
     flex: 1;
+    min-height: 0;
     display: flex;
     flex-direction: column;
-    padding: 12px 16px calc(16px + var(--safe-bottom));
-    gap: 12px;
+    padding: 12px 16px calc(12px + var(--safe-bottom));
+    gap: 10px;
+    overflow: hidden;
   }
 
-  /* Photo stage */
+  /* Photo stage — default mobile / portrait */
   .photo-stage {
     position: relative;
     width: 100%;
-    aspect-ratio: 3 / 2;
+    flex: 1 1 auto;
+    min-height: 0;
+    max-height: min(52dvh, 420px);
+    aspect-ratio: 16 / 9;
     border-radius: var(--radius);
     overflow: hidden;
     background: var(--surface);
@@ -109,6 +138,7 @@
     width: 100%;
     height: 100%;
     object-fit: cover;
+    object-position: center;
     display: block;
     transition: opacity 0.15s ease;
   }
@@ -212,6 +242,7 @@
 
   /* Hint link */
   .hint-row {
+    flex-shrink: 0;
     min-height: 1.4em;
   }
 
@@ -240,11 +271,12 @@
 
   .hint-text.visible { display: block; }
 
-  /* Multiple-choice grid — visible once image is ready, before answer */
+  /* Multiple-choice grid — 3×2 on wider phones, 2×3 default */
   .choices {
     display: none;
     grid-template-columns: 1fr 1fr;
     gap: 8px;
+    flex-shrink: 0;
   }
 
   .choices.visible { display: grid; }
@@ -265,7 +297,7 @@
     transition: transform 0.1s, background 0.15s, border-color 0.15s, opacity 0.15s;
     -webkit-user-select: none;
     user-select: none;
-    min-height: 52px;
+    min-height: 48px;
   }
 
   .choice-btn:active:not(:disabled) { transform: scale(0.97); }
@@ -294,8 +326,11 @@
   .after-reveal {
     display: none;
     flex-direction: column;
-    gap: 10px;
+    gap: 8px;
     animation: fadeIn 0.15s ease;
+    flex-shrink: 1;
+    min-height: 0;
+    overflow: auto;
   }
 
   .after-reveal.visible { display: flex; }
@@ -358,6 +393,7 @@
     color: var(--text-muted);
     line-height: 1.35;
     opacity: 0.75;
+    flex-shrink: 0;
   }
 
   .attrib.visible { display: block; }
@@ -386,7 +422,7 @@
 
   .streak-badge .n { color: var(--text); }
 
-  /* Start screen */
+  /* Start screen / leaderboard overlays */
   .screen-overlay {
     position: fixed;
     inset: 0;
@@ -394,7 +430,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: calc(20px + var(--safe-top)) 20px calc(20px + var(--safe-bottom));
+    padding: calc(20px + var(--safe-top)) 24px calc(20px + var(--safe-bottom));
     background: rgba(6, 12, 24, 0.96);
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
@@ -403,12 +439,11 @@
   .screen-overlay.hidden { display: none; }
 
   .start-card, .lb-card {
-    width: 100%;
-    max-width: 400px;
+    width: min(100%, 440px);
     background: var(--bg-elevated);
     border: 1px solid var(--border);
     border-radius: 16px;
-    padding: 28px 22px 24px;
+    padding: 28px 24px 24px;
     box-shadow: 0 16px 48px rgba(0,0,0,0.45);
   }
 
@@ -486,7 +521,11 @@
   }
 
   /* Leaderboard / end run */
-  .lb-card { max-height: min(90dvh, 640px); display: flex; flex-direction: column; }
+  .lb-card {
+    max-height: min(88dvh, 680px);
+    display: flex;
+    flex-direction: column;
+  }
 
   .lb-result {
     text-align: center;
@@ -589,9 +628,166 @@
     font-size: 0.9rem;
   }
 
-  .game-shell.hidden-game {
-    visibility: hidden;
-    pointer-events: none;
+  /* —— Wide / 16:9 landscape: photo left, controls right —— */
+  @media (min-width: 860px) and (min-aspect-ratio: 4/3) {
+    .header {
+      padding: calc(12px + var(--safe-top)) 24px 12px;
+    }
+
+    .header h1 {
+      font-size: 0.8rem;
+    }
+
+    .hdr-sub {
+      display: block;
+      margin: 0;
+      font-size: 0.75rem;
+      opacity: 0.65;
+      flex: 1;
+    }
+
+    .main {
+      display: grid;
+      grid-template-columns: minmax(0, 1.55fr) minmax(300px, 400px);
+      grid-template-rows: auto minmax(0, 1fr) auto auto;
+      grid-template-areas:
+        "photo hint"
+        "photo choices"
+        "photo after"
+        "photo attrib";
+      gap: 12px 20px;
+      padding: 16px 24px calc(16px + var(--safe-bottom));
+      align-content: stretch;
+    }
+
+    .photo-stage {
+      grid-area: photo;
+      max-height: none;
+      aspect-ratio: auto;
+      height: 100%;
+      width: 100%;
+      align-self: stretch;
+    }
+
+    .hint-row { grid-area: hint; align-self: start; }
+
+    .choices {
+      grid-area: choices;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      align-content: start;
+      align-self: start;
+    }
+
+    .choice-btn {
+      min-height: 56px;
+      font-size: 0.88rem;
+      padding: 14px 12px;
+    }
+
+    .after-reveal {
+      grid-area: after;
+      align-self: stretch;
+    }
+
+    .attrib {
+      grid-area: attrib;
+      align-self: end;
+    }
+
+    .placard .name { font-size: 1.5rem; }
+
+    .start-card, .lb-card {
+      width: min(100%, 480px);
+      padding: 36px 32px 28px;
+    }
+
+    .start-title { font-size: 1.85rem; }
+
+    .lb-result .streak-final { font-size: 2.75rem; }
+  }
+
+  /* Extra-wide 16:9 (desktop / TV) */
+  @media (min-width: 1280px) and (min-aspect-ratio: 4/3) {
+    .main {
+      grid-template-columns: minmax(0, 1.7fr) minmax(340px, 440px);
+      gap: 16px 28px;
+      padding: 20px 28px calc(20px + var(--safe-bottom));
+    }
+
+    .choices {
+      gap: 12px;
+    }
+
+    .choice-btn {
+      min-height: 60px;
+      font-size: 0.92rem;
+    }
+
+    .fact { font-size: 0.95rem; padding: 14px 16px; }
+  }
+
+  /* Short landscape (e.g. 1280×720): tighten chrome so one screen fits */
+  @media (min-width: 860px) and (max-height: 800px) and (orientation: landscape) {
+    .header {
+      padding: calc(8px + var(--safe-top)) 20px 8px;
+    }
+
+    .main {
+      gap: 8px 16px;
+      padding: 10px 20px calc(10px + var(--safe-bottom));
+    }
+
+    .choice-btn {
+      min-height: 44px;
+      padding: 10px 8px;
+      font-size: 0.8rem;
+    }
+
+    .fact { font-size: 0.85rem; padding: 10px 12px; }
+
+    .placard { padding: 10px 14px 12px; }
+    .placard .name { font-size: 1.2rem; }
+  }
+
+  /* Portrait phones: allow scroll if needed; photo stays 16:9-ish */
+  @media (max-width: 859px), (max-aspect-ratio: 4/3) {
+    body {
+      height: auto;
+      max-height: none;
+      min-height: 100dvh;
+      overflow-x: hidden;
+      overflow-y: auto;
+    }
+
+    .game-shell {
+      min-height: 100dvh;
+      height: auto;
+    }
+
+    .main {
+      overflow: visible;
+    }
+
+    .photo-stage {
+      flex: 0 0 auto;
+      max-height: none;
+      height: auto;
+      aspect-ratio: 16 / 9;
+    }
+  }
+
+  /* Very narrow: slightly taller photo for readability */
+  @media (max-width: 420px) {
+    .photo-stage {
+      aspect-ratio: 3 / 2;
+    }
+
+    .choice-btn {
+      font-size: 0.78rem;
+      min-height: 48px;
+      padding: 10px 8px;
+    }
   }
 </style>
 </head>
