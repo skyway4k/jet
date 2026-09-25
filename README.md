@@ -12,6 +12,7 @@ Mobile-first trivia: identify business jets (and a few helicopters) from exterio
 - On a miss, streak saved to a local **leaderboard** (name + streak + date)
 - Tap anywhere after a correct answer to continue (no Continue button)
 - Spoiler-safe: attribution and type-bearing alt only after you answer
+- **Flag** button files a GitHub issue for bad IDs / bad option sets (also saved locally as `nameThatJetFlags`)
 - **Exterior photos only** — prefer **side / 3/4 profile** views with **exactly one aircraft** in frame
 
 ## Photo loading (fast path)
@@ -28,6 +29,6 @@ See `images/README.md` for adding more of your own exterior photos.
 
 ## Notes
 
-Player name and leaderboard live in **browser `localStorage`** (`nameThatJetPlayerName`, `nameThatJetLeaderboard`). They are per-device / per-browser — not synced across phones or private windows.
+Player name, leaderboard, and flagged rounds live in **browser `localStorage`** (`nameThatJetPlayerName`, `nameThatJetLeaderboard`, `nameThatJetFlags`). They are per-device / per-browser — not synced across phones or private windows. Flag reports open a pre-filled GitHub issue titled with prefix `Flag:` so the maintainer/bot can review.
 
 Single self-contained `index.html` — no build step. GitHub Pages serves from `main` at `/jet/`.

@@ -422,6 +422,92 @@
 
   .streak-badge .n { color: var(--text); }
 
+
+  .flag-btn {
+    flex-shrink: 0;
+    margin: 0;
+    padding: 4px 8px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: rgba(255,255,255,0.04);
+    color: var(--text-muted);
+    font: inherit;
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    cursor: pointer;
+    line-height: 1.2;
+    opacity: 0.85;
+    transition: opacity 0.15s, background 0.15s, border-color 0.15s, color 0.15s;
+  }
+
+  .flag-btn:hover,
+  .flag-btn:focus-visible {
+    opacity: 1;
+    color: var(--text);
+    border-color: rgba(255,180,80,0.45);
+    background: rgba(255,180,80,0.08);
+    outline: none;
+  }
+
+  .flag-btn:active {
+    transform: scale(0.97);
+  }
+
+  .flag-toast {
+    position: fixed;
+    left: 50%;
+    bottom: calc(20px + var(--safe-bottom));
+    transform: translateX(-50%) translateY(12px);
+    z-index: 80;
+    max-width: min(92vw, 420px);
+    padding: 12px 16px;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    background: rgba(12, 22, 40, 0.96);
+    color: var(--text);
+    font-size: 0.85rem;
+    font-weight: 500;
+    box-shadow: 0 12px 32px rgba(0,0,0,0.45);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s, transform 0.2s;
+    text-align: center;
+  }
+
+  .flag-toast.visible {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+    pointer-events: auto;
+  }
+
+  .flag-toast a {
+    color: var(--accent);
+    font-weight: 600;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+
+  .flag-toast .flag-toast-actions {
+    margin-top: 8px;
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .flag-toast .flag-toast-actions button {
+    font: inherit;
+    font-size: 0.8rem;
+    font-weight: 600;
+    padding: 6px 12px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text);
+    cursor: pointer;
+  }
+
   /* Start screen / leaderboard overlays */
   .screen-overlay {
     position: fixed;
@@ -826,6 +912,7 @@
       <div class="score" id="score">Round 1 · <span class="called">0</span>/0 called</div>
       <div class="streak-badge" id="streakBadge">Streak <span class="n" id="streakVal">0</span></div>
     </div>
+    <button type="button" class="flag-btn" id="flagBtn" title="Flag wrong photo or options" aria-label="Flag this round">🚩 Flag</button>
   </header>
 
   <main class="main">
@@ -859,6 +946,9 @@
 
     <p class="attrib" id="attrib"></p>
   </main>
+
+  <div class="flag-toast" id="flagToast" role="status" aria-live="polite"></div>
+
   </div>
 
 <script>
@@ -1517,7 +1607,10 @@
   // --- Persistence ---
   const LS_NAME = "nameThatJetPlayerName";
   const LS_BOARD = "nameThatJetLeaderboard";
+  const LS_FLAGS = "nameThatJetFlags";
   const LB_CAP = 20;
+  const FLAGS_CAP = 50;
+  const FLAG_ISSUE_REPO = "skyway4k/jet";
 
   // --- Image / search caches (memory + sessionStorage) ---
   const SS_SEARCH = "nameThatJetSearchCache_v1";
@@ -1567,6 +1660,8 @@
   let loadGen = 0;
   let usedFileTitles = new Set();
   let current = null; // { type, image, registration }
+  let currentOptions = []; // labels shown this round
+  let selectedLabel = null; // player pick, or null if not answered
   let nextReady = null; // preloaded round data
   let preloadPromise = null;
   let lastLbEntryId = null;
@@ -1576,6 +1671,8 @@
   const photo = document.getElementById("photo");
   const scoreEl = document.getElementById("score");
   const streakVal = document.getElementById("streakVal");
+  const flagBtn = document.getElementById("flagBtn");
+  const flagToast = document.getElementById("flagToast");
   const hintBtn = document.getElementById("hintBtn");
   const hintText = document.getElementById("hintText");
   const choicesEl = document.getElementById("choices");
@@ -1681,6 +1778,8 @@
 
   function renderChoices(correct) {
     const opts = buildChoices(correct);
+    currentOptions = opts.map(function (t) { return labelFor(t); });
+    selectedLabel = null;
     choicesEl.innerHTML = "";
     opts.forEach(function (t) {
       const btn = document.createElement("button");
@@ -2396,6 +2495,7 @@
       return;
     }
     revealed = true;
+    selectedLabel = labelFor(selected);
     setAdvanceUi(false);
 
     const correctKey = typeKey(current.type);
@@ -2531,6 +2631,194 @@
   });
   playAgainBtn.addEventListener("click", function () {
     showNameScreen();
+  });
+
+
+  // --- Flag / report bad ID or options ---
+  let flagToastTimer = null;
+  let lastFlagIssueUrl = "";
+  let lastFlagBody = "";
+
+  function absoluteAssetUrl(url) {
+    if (!url) return "";
+    try { return new URL(url, location.href).href; } catch (e) { return url; }
+  }
+
+  function captureFlagSnapshot() {
+    if (!current || !current.type || !current.image) return null;
+    const type = current.type;
+    const img = current.image;
+    return {
+      imageUrl: absoluteAssetUrl(img.url),
+      imageSource: img.source || "unknown",
+      imageTitle: img.title || "",
+      typeId: typeKey(type),
+      typeName: labelFor(type),
+      options: currentOptions.slice(),
+      answered: !!revealed,
+      selected: selectedLabel,
+      streak: streak,
+      playerName: playerName || "",
+      timestamp: new Date().toISOString(),
+      pageUrl: location.href.split("#")[0]
+    };
+  }
+
+  function saveFlagSnapshot(snap) {
+    let list = [];
+    try {
+      const raw = localStorage.getItem(LS_FLAGS);
+      list = raw ? JSON.parse(raw) : [];
+      if (!Array.isArray(list)) list = [];
+    } catch (e) {
+      list = [];
+    }
+    list.unshift(snap);
+    if (list.length > FLAGS_CAP) list = list.slice(0, FLAGS_CAP);
+    try {
+      localStorage.setItem(LS_FLAGS, JSON.stringify(list));
+    } catch (e) { /* quota / private mode */ }
+  }
+
+  function buildFlagIssue(snap) {
+    const title = "Flag: " + snap.typeName + " photo/options";
+    const opts = (snap.options && snap.options.length)
+      ? snap.options.map(function (o, i) { return (i + 1) + ". " + o; }).join("\n")
+      : "_none_";
+    const body = [
+      "## Flagged round",
+      "",
+      "Player flagged wrong ID or wrong variant options.",
+      "",
+      "### Image",
+      snap.imageUrl ? ("![flagged](" + snap.imageUrl + ")") : "_no image_",
+      "",
+      "- URL: " + (snap.imageUrl || "_none_"),
+      "- Source: `" + snap.imageSource + "`",
+      snap.imageTitle ? ("- File/title: `" + snap.imageTitle + "`") : null,
+      "",
+      "### Correct label (used by game)",
+      "- Type id: `" + snap.typeId + "`",
+      "- Display name: **" + snap.typeName + "**",
+      "",
+      "### Options shown",
+      opts,
+      "",
+      "### Round state",
+      "- Answered yet: " + (snap.answered ? "yes" : "no"),
+      "- Selected: " + (snap.answered ? (snap.selected || "(unknown)") : "(not answered)"),
+      "- Streak: " + snap.streak,
+      "- Player: " + (snap.playerName || "(none)"),
+      "- Timestamp: `" + snap.timestamp + "`",
+      "- Page: " + snap.pageUrl,
+      "",
+      "---",
+      "Click **Submit new issue** to send this report — no extra typing needed."
+    ].filter(function (line) { return line !== null; }).join("\n");
+    return { title: title, body: body };
+  }
+
+  function hideFlagToast() {
+    if (!flagToast) return;
+    flagToast.classList.remove("visible");
+    flagToast.innerHTML = "";
+  }
+
+  function showFlagToast(message, opts) {
+    if (!flagToast) return;
+    opts = opts || {};
+    if (flagToastTimer) {
+      clearTimeout(flagToastTimer);
+      flagToastTimer = null;
+    }
+    flagToast.innerHTML = "";
+    const msg = document.createElement("div");
+    msg.textContent = message;
+    flagToast.appendChild(msg);
+    if (opts.openUrl || opts.copyBody) {
+      const actions = document.createElement("div");
+      actions.className = "flag-toast-actions";
+      if (opts.openUrl) {
+        const a = document.createElement("a");
+        a.href = opts.openUrl;
+        a.target = "_blank";
+        a.rel = "noopener noreferrer";
+        a.textContent = "Open report";
+        actions.appendChild(a);
+      }
+      if (opts.copyBody) {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.textContent = "Copy";
+        btn.addEventListener("click", function (e) {
+          e.stopPropagation();
+          const text = opts.copyBody;
+          const done = function () {
+            btn.textContent = "Copied";
+            setTimeout(function () { btn.textContent = "Copy"; }, 1500);
+          };
+          if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(text).then(done).catch(function () {
+              try {
+                const ta = document.createElement("textarea");
+                ta.value = text;
+                document.body.appendChild(ta);
+                ta.select();
+                document.execCommand("copy");
+                document.body.removeChild(ta);
+                done();
+              } catch (err) { /* ignore */ }
+            });
+          }
+        });
+        actions.appendChild(btn);
+      }
+      flagToast.appendChild(actions);
+    }
+    flagToast.classList.add("visible");
+    const hold = opts.holdMs || (opts.openUrl ? 10000 : 3200);
+    flagToastTimer = setTimeout(hideFlagToast, hold);
+  }
+
+  function openFlagReport() {
+    if (!current || stage.classList.contains("loading") || stage.classList.contains("error")) {
+      showFlagToast("No photo to flag yet");
+      return;
+    }
+    const snap = captureFlagSnapshot();
+    if (!snap) {
+      showFlagToast("No photo to flag yet");
+      return;
+    }
+    saveFlagSnapshot(snap);
+    const issue = buildFlagIssue(snap);
+    lastFlagBody = issue.body;
+    const url =
+      "https://github.com/" + FLAG_ISSUE_REPO + "/issues/new?title=" +
+      encodeURIComponent(issue.title) +
+      "&body=" + encodeURIComponent(issue.body);
+    lastFlagIssueUrl = url;
+    let opened = null;
+    try {
+      opened = window.open(url, "_blank", "noopener,noreferrer");
+    } catch (e) {
+      opened = null;
+    }
+    if (!opened) {
+      showFlagToast("Popup blocked — open the report or copy details", {
+        openUrl: url,
+        copyBody: issue.body,
+        holdMs: 14000
+      });
+    } else {
+      showFlagToast("Report opened — submit on GitHub to send");
+    }
+  }
+
+
+  flagBtn.addEventListener("click", function (e) {
+    e.stopPropagation();
+    openFlagReport();
   });
 
   // Boot — name screen first; game loads after Start
