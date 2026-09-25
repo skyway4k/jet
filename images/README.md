@@ -18,3 +18,7 @@
 ## Adding more
 
 Drop exteriors into `images/user/` (or a new folder), then point the type’s `images` array at those paths, or extend `LOCAL_IMAGES` keyed as `Manufacturer|DisplayName`.
+
+## Accuracy notes (2026-09)
+
+User photos were re-audited against FAA / Flightradar24 registrations. Global family files in particular were reassigned (several former “Global 6000” shots were Global 7500 / 6500; former “Global 7500” N5X shots are Global 5500).

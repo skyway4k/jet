@@ -6,7 +6,7 @@ Mobile-first trivia: identify business jets (and a few helicopters) from exterio
 
 ## Features
 
-- Expanded catalog (~108 types), 6 similar multiple-choice options, optional hints
+- Expanded catalog (~108 types), 4 similar multiple-choice options, optional hints
 - **Family uniqueness:** distractors never include a near-variant of the correct type (e.g. Global 6500 will not appear with Global 6000/7500; G650 not with G650ER; Falcon 7X not with 8X)
 - Name entry at start; **streak** of consecutive correct answers
 - On a miss, streak saved to a local **leaderboard** (name + streak + date)
