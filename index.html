@@ -1610,7 +1610,9 @@
   const LS_FLAGS = "nameThatJetFlags";
   const LB_CAP = 20;
   const FLAGS_CAP = 50;
-  const FLAG_ISSUE_REPO = "skyway4k/jet";
+  // Parent may fill this later for optional silent POST of flag snapshots.
+  // Leave empty: Flag never navigates; localStorage + clipboard + toast only.
+  const FLAG_WEBHOOK_URL = ''; // parent will fill
 
   // --- Image / search caches (memory + sessionStorage) ---
   const SS_SEARCH = "nameThatJetSearchCache_v1";
@@ -2636,8 +2638,7 @@
 
   // --- Flag / report bad ID or options ---
   let flagToastTimer = null;
-  let lastFlagIssueUrl = "";
-  let lastFlagBody = "";
+  let lastFlagReportText = "";
 
   function absoluteAssetUrl(url) {
     if (!url) return "";
@@ -2680,42 +2681,47 @@
     } catch (e) { /* quota / private mode */ }
   }
 
-  function buildFlagIssue(snap) {
-    const title = "Flag: " + snap.typeName + " photo/options";
+  function buildFlagReportText(snap) {
     const opts = (snap.options && snap.options.length)
-      ? snap.options.map(function (o, i) { return (i + 1) + ". " + o; }).join("\n")
-      : "_none_";
-    const body = [
-      "## Flagged round",
-      "",
-      "Player flagged wrong ID or wrong variant options.",
-      "",
-      "### Image",
-      snap.imageUrl ? ("![flagged](" + snap.imageUrl + ")") : "_no image_",
-      "",
-      "- URL: " + (snap.imageUrl || "_none_"),
-      "- Source: `" + snap.imageSource + "`",
-      snap.imageTitle ? ("- File/title: `" + snap.imageTitle + "`") : null,
-      "",
-      "### Correct label (used by game)",
-      "- Type id: `" + snap.typeId + "`",
-      "- Display name: **" + snap.typeName + "**",
-      "",
-      "### Options shown",
+      ? snap.options.map(function (o, i) { return (i + 1) + ") " + o; }).join("\n")
+      : "(none)";
+    return [
+      "Name That Jet — flagged round",
+      "Image: " + (snap.imageUrl || "(none)"),
+      "Labeled type: " + snap.typeName + " (" + snap.typeId + ")",
+      "Options:",
       opts,
-      "",
-      "### Round state",
-      "- Answered yet: " + (snap.answered ? "yes" : "no"),
-      "- Selected: " + (snap.answered ? (snap.selected || "(unknown)") : "(not answered)"),
-      "- Streak: " + snap.streak,
-      "- Player: " + (snap.playerName || "(none)"),
-      "- Timestamp: `" + snap.timestamp + "`",
-      "- Page: " + snap.pageUrl,
-      "",
-      "---",
-      "Click **Submit new issue** to send this report — no extra typing needed."
-    ].filter(function (line) { return line !== null; }).join("\n");
-    return { title: title, body: body };
+      "Answered: " + (snap.answered ? ("yes — " + (snap.selected || "?")) : "no"),
+      "When: " + snap.timestamp
+    ].join("\n");
+  }
+
+  function copyTextToClipboard(text) {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      return navigator.clipboard.writeText(text).then(function () {
+        return true;
+      }).catch(function () {
+        return fallbackCopy(text);
+      });
+    }
+    return Promise.resolve(fallbackCopy(text));
+  }
+
+  function fallbackCopy(text) {
+    try {
+      const ta = document.createElement("textarea");
+      ta.value = text;
+      ta.setAttribute("readonly", "");
+      ta.style.position = "fixed";
+      ta.style.left = "-9999px";
+      document.body.appendChild(ta);
+      ta.select();
+      const ok = document.execCommand("copy");
+      document.body.removeChild(ta);
+      return !!ok;
+    } catch (e) {
+      return false;
+    }
   }
 
   function hideFlagToast() {
@@ -2735,49 +2741,42 @@
     const msg = document.createElement("div");
     msg.textContent = message;
     flagToast.appendChild(msg);
-    if (opts.openUrl || opts.copyBody) {
+    if (opts.copyBody) {
       const actions = document.createElement("div");
       actions.className = "flag-toast-actions";
-      if (opts.openUrl) {
-        const a = document.createElement("a");
-        a.href = opts.openUrl;
-        a.target = "_blank";
-        a.rel = "noopener noreferrer";
-        a.textContent = "Open report";
-        actions.appendChild(a);
-      }
-      if (opts.copyBody) {
-        const btn = document.createElement("button");
-        btn.type = "button";
-        btn.textContent = "Copy";
-        btn.addEventListener("click", function (e) {
-          e.stopPropagation();
-          const text = opts.copyBody;
-          const done = function () {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.textContent = "Copy report";
+      btn.addEventListener("click", function (e) {
+        e.stopPropagation();
+        const text = opts.copyBody;
+        copyTextToClipboard(text).then(function (ok) {
+          if (ok) {
             btn.textContent = "Copied";
-            setTimeout(function () { btn.textContent = "Copy"; }, 1500);
-          };
-          if (navigator.clipboard && navigator.clipboard.writeText) {
-            navigator.clipboard.writeText(text).then(done).catch(function () {
-              try {
-                const ta = document.createElement("textarea");
-                ta.value = text;
-                document.body.appendChild(ta);
-                ta.select();
-                document.execCommand("copy");
-                document.body.removeChild(ta);
-                done();
-              } catch (err) { /* ignore */ }
-            });
+            setTimeout(function () { btn.textContent = "Copy report"; }, 1500);
           }
         });
-        actions.appendChild(btn);
-      }
+      });
+      actions.appendChild(btn);
       flagToast.appendChild(actions);
     }
     flagToast.classList.add("visible");
-    const hold = opts.holdMs || (opts.openUrl ? 10000 : 3200);
+    const hold = opts.holdMs || (opts.copyBody ? 8000 : 4200);
     flagToastTimer = setTimeout(hideFlagToast, hold);
+  }
+
+  function postFlagWebhook(snap) {
+    const url = (typeof FLAG_WEBHOOK_URL === "string") ? FLAG_WEBHOOK_URL.trim() : "";
+    if (!url) return;
+    try {
+      fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(snap),
+        mode: "cors",
+        keepalive: true
+      }).catch(function () { /* silent — local save already done */ });
+    } catch (e) { /* ignore */ }
   }
 
   function openFlagReport() {
@@ -2791,35 +2790,29 @@
       return;
     }
     saveFlagSnapshot(snap);
-    const issue = buildFlagIssue(snap);
-    lastFlagBody = issue.body;
-    const url =
-      "https://github.com/" + FLAG_ISSUE_REPO + "/issues/new?title=" +
-      encodeURIComponent(issue.title) +
-      "&body=" + encodeURIComponent(issue.body);
-    lastFlagIssueUrl = url;
-    let opened = null;
-    try {
-      opened = window.open(url, "_blank", "noopener,noreferrer");
-    } catch (e) {
-      opened = null;
-    }
-    if (!opened) {
-      showFlagToast("Popup blocked — open the report or copy details", {
-        openUrl: url,
-        copyBody: issue.body,
-        holdMs: 14000
-      });
-    } else {
-      showFlagToast("Report opened — submit on GitHub to send");
-    }
+    postFlagWebhook(snap);
+    const report = buildFlagReportText(snap);
+    lastFlagReportText = report;
+    copyTextToClipboard(report).then(function (ok) {
+      if (ok) {
+        showFlagToast("Flagged and copied — paste it in chat with Plane Trivia Bot and I’ll fix it.", {
+          copyBody: report,
+          holdMs: 9000
+        });
+      } else {
+        showFlagToast("Flagged — tap Copy report, then paste it in chat with Plane Trivia Bot.", {
+          copyBody: report,
+          holdMs: 12000
+        });
+      }
+    });
   }
-
 
   flagBtn.addEventListener("click", function (e) {
     e.stopPropagation();
     openFlagReport();
   });
+
 
   // Boot — name screen first; game loads after Start
   showNameScreen();
