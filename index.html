@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>Name That Private Jet</title>
-<meta name="jet-build" content="fix-pendingEndStreak-2026-09-30">
+<meta name="jet-build" content="tail-reg-visible-2026-09-30">
 <meta name="description" content="Name that private jet — and helicopter — from ramp photos.">
 <style>
   :root {
@@ -758,6 +758,12 @@
 
     .hint-row { grid-area: hint; align-self: start; }
 
+    .reg-caption {
+      grid-area: hint;
+      align-self: start;
+      padding-top: 0;
+    }
+
     .choices {
       grid-area: choices;
       grid-template-columns: 1fr 1fr;
@@ -931,7 +937,7 @@
     outline-offset: 2px;
   }
 
-  /* Tail / country mode: real tail photo + registration overlay */
+  /* Tail / country mode: real tail photo; keep painted reg readable */
   .reg-prompt {
     display: none;
     position: absolute;
@@ -953,7 +959,32 @@
     pointer-events: none;
   }
 
-  .photo-stage.tail-mode:not(.error) .reg-prompt { display: flex; }
+  /* No photo: full-stage registration prompt */
+  .photo-stage.tail-mode.no-tail-photo:not(.error) .reg-prompt {
+    display: flex;
+    justify-content: center;
+    background:
+      radial-gradient(ellipse at 50% 40%, rgba(61,158,255,0.18), transparent 55%),
+      linear-gradient(160deg, #0c1a30 0%, #071018 100%);
+  }
+
+  /* After answer: teach-first overlay (semi-transparent so empennage stays visible) */
+  .photo-stage.tail-mode.revealed:not(.error):not(.no-tail-photo) .reg-prompt {
+    display: flex;
+    justify-content: flex-end;
+    background: linear-gradient(
+      to top,
+      rgba(7, 16, 24, 0.88) 0%,
+      rgba(7, 16, 24, 0.55) 38%,
+      rgba(7, 16, 24, 0.12) 68%,
+      transparent 100%
+    );
+  }
+
+  .photo-stage.tail-mode.revealed.no-tail-photo:not(.error) .reg-prompt {
+    display: flex;
+  }
+
   .photo-stage.tail-mode.error .reg-prompt { display: none; }
   .photo-stage.tail-mode .placard { display: none !important; }
   .photo-stage.tail-mode:not(.error) .photo-overlay { display: none !important; }
@@ -962,21 +993,23 @@
     background: #071018;
   }
 
+  /* Show whole empennage crop centered — avoid 16:9 cover clipping the painted mark */
   .photo-stage.tail-mode img {
     display: block !important;
     width: 100%;
     height: 100%;
-    object-fit: cover;
-    object-position: center;
+    object-fit: contain;
+    object-position: center center;
   }
 
-  /* No photo yet: fall back to solid text stage */
   .photo-stage.tail-mode.no-tail-photo img { display: none !important; }
-  .photo-stage.tail-mode.no-tail-photo .reg-prompt {
-    justify-content: center;
-    background:
-      radial-gradient(ellipse at 50% 40%, rgba(61,158,255,0.18), transparent 55%),
-      linear-gradient(160deg, #0c1a30 0%, #071018 100%);
+
+  /* Mobile/portrait: taller stage so square tail crops fill more of the frame */
+  @media (max-width: 859px), (max-aspect-ratio: 4/3) {
+    .photo-stage.tail-mode {
+      aspect-ratio: 4 / 3;
+      max-height: min(58dvh, 520px);
+    }
   }
 
   .reg-prompt-eyebrow {
@@ -1006,6 +1039,47 @@
 
   .reg-prompt-q {
     font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    max-width: 28rem;
+  }
+
+  /* Caption BELOW photo while guessing — never covers the painted tail number */
+  .reg-caption {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    flex-shrink: 0;
+    text-align: center;
+    padding: 4px 8px 2px;
+  }
+
+  .reg-caption.is-active {
+    display: flex;
+  }
+
+  .reg-caption-eyebrow {
+    font-size: 0.68rem;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+
+  .reg-caption-mark {
+    font-size: clamp(1.15rem, 4.2vw, 1.85rem);
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.06em;
+    color: var(--text);
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    line-height: 1.15;
+  }
+
+  .reg-caption-q {
+    font-size: 0.88rem;
     font-weight: 600;
     color: var(--text-muted);
     max-width: 28rem;
@@ -1062,7 +1136,8 @@
 
   .reg-prompt.is-answered .reg-prompt-mark {
     font-size: clamp(1.25rem, 4.5vw, 2.2rem);
-    opacity: 0.95;
+    opacity: 0.92;
+    background: rgba(0,0,0,0.28);
   }
 
   .tap-hint.miss-next {
@@ -1146,6 +1221,12 @@
         <div class="name" id="name"></div>
         <div class="sub" id="sub"></div>
       </div>
+    </div>
+
+    <div class="reg-caption" id="regCaption" aria-hidden="true">
+      <div class="reg-caption-eyebrow">Registration</div>
+      <div class="reg-caption-mark" id="regCaptionMark">—</div>
+      <p class="reg-caption-q">Which country is this aircraft registered in?</p>
     </div>
 
     <div class="hint-row">
@@ -2323,6 +2404,8 @@
   const modeTailBtn = document.getElementById("modeTailBtn");
   const regPrompt = document.getElementById("regPrompt");
   const regMark = document.getElementById("regMark");
+  const regCaption = document.getElementById("regCaption");
+  const regCaptionMark = document.getElementById("regCaptionMark");
   const regReveal = document.getElementById("regReveal");
   const regRevealStatus = document.getElementById("regRevealStatus");
   const regRevealCountry = document.getElementById("regRevealCountry");
@@ -2841,6 +2924,18 @@
     choicesEl.classList.add("visible");
   }
 
+
+  function setTailCaptionActive(on) {
+    if (!regCaption) return;
+    const active = !!on;
+    regCaption.classList.toggle("is-active", active);
+    regCaption.setAttribute("aria-hidden", active ? "false" : "true");
+    // When caption is on, stage overlay is hidden — keep a11y in sync.
+    if (regPrompt) {
+      if (active) regPrompt.setAttribute("aria-hidden", "true");
+    }
+  }
+
   function applyTailRound(data) {
     current = data;
     selectedLabel = null;
@@ -2852,6 +2947,8 @@
     photo.classList.add("hidden");
 
     if (regMark) regMark.textContent = data.registration;
+    if (regCaptionMark) regCaptionMark.textContent = data.registration || "—";
+    setTailCaptionActive(false);
     if (regPrompt) {
       clearRegReveal();
       regPrompt.setAttribute("aria-hidden", "false");
@@ -2878,6 +2975,7 @@
       try { photo.removeAttribute("src"); } catch (_) {}
       attrib.innerHTML = "";
       attrib.classList.remove("visible");
+      setTailCaptionActive(false);
       // Registration + country choices already rendered above — keep them visible.
       try { startPreloadNext(); } catch (_) {}
     }
@@ -2889,6 +2987,8 @@
         var onOk = function () {
           stage.classList.remove("loading", "error", "no-tail-photo");
           photo.classList.remove("hidden");
+          // Text reg lives below the stage so the painted mark stays readable.
+          setTailCaptionActive(true);
           if (tp.credit) {
             attrib.innerHTML = "Photo: " + tp.credit;
             attrib.classList.add("visible");
@@ -3197,6 +3297,7 @@
     const country = current.registry.country || "";
     const note = current.registry.note ||
       ((current.registry.prefix || "") + " = " + country);
+    setTailCaptionActive(false);
     regPrompt.classList.add("is-answered");
     regPrompt.classList.toggle("answer-ok", !!isCorrect);
     regPrompt.classList.toggle("answer-miss", !isCorrect);
@@ -3326,6 +3427,8 @@
     subEl.textContent = "";
     photo.alt = "Business aircraft";
     if (regMark) regMark.textContent = "—";
+    if (regCaptionMark) regCaptionMark.textContent = "—";
+    setTailCaptionActive(false);
     if (regPrompt) {
       regPrompt.setAttribute("aria-hidden", "true");
       clearRegReveal();
