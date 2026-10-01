@@ -525,7 +525,7 @@
   .screen-overlay.hidden { display: none; }
 
   .start-card, .lb-card {
-    width: min(100%, 440px);
+    width: min(100%, 480px);
     background: var(--bg-elevated);
     border: 1px solid var(--border);
     border-radius: 16px;
@@ -875,6 +875,123 @@
       padding: 10px 8px;
     }
   }
+
+  /* Mode select on start screen */
+  .mode-label {
+    display: block;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin: 0 0 8px;
+  }
+
+  .mode-toggle {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 18px;
+  }
+
+  .mode-btn {
+    appearance: none;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 10px;
+    font-family: inherit;
+    font-size: 0.82rem;
+    font-weight: 700;
+    line-height: 1.25;
+    color: var(--text-muted);
+    background: var(--surface);
+    cursor: pointer;
+    text-align: center;
+    transition: background 0.15s, border-color 0.15s, color 0.15s, box-shadow 0.15s;
+  }
+
+  .mode-btn .mode-btn-sub {
+    display: block;
+    margin-top: 4px;
+    font-size: 0.68rem;
+    font-weight: 500;
+    opacity: 0.8;
+  }
+
+  .mode-btn.active {
+    color: var(--text);
+    border-color: var(--accent);
+    background: var(--accent-dim);
+    box-shadow: 0 0 0 2px var(--accent-dim);
+  }
+
+  .mode-btn:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+
+  /* Tail / country mode: big registration prompt (16:9) */
+  .reg-prompt {
+    display: none;
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 24px 20px;
+    background:
+      radial-gradient(ellipse at 50% 40%, rgba(61,158,255,0.18), transparent 55%),
+      linear-gradient(160deg, #0c1a30 0%, #071018 100%);
+    text-align: center;
+  }
+
+  .photo-stage.tail-mode:not(.error) .reg-prompt { display: flex; }
+  .photo-stage.tail-mode.error .reg-prompt { display: none; }
+  .photo-stage.tail-mode img,
+  .photo-stage.tail-mode .placard { display: none !important; }
+  .photo-stage.tail-mode:not(.error) .photo-overlay { display: none !important; }
+
+  .photo-stage.tail-mode {
+    background: #071018;
+  }
+
+  .reg-prompt-eyebrow {
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+
+  .reg-prompt-mark {
+    font-size: clamp(1.8rem, 7vw, 3.4rem);
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.06em;
+    color: var(--text);
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    line-height: 1.1;
+    padding: 12px 18px;
+    border: 2px solid rgba(255,255,255,0.22);
+    border-radius: 12px;
+    background: rgba(0,0,0,0.35);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.35);
+    max-width: 100%;
+    word-break: break-all;
+  }
+
+  .reg-prompt-q {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    max-width: 28rem;
+  }
+
+  .game-shell.mode-tail .hint-row { display: none; }
+  .game-shell.mode-tail .attrib { display: none !important; }
+
 </style>
 </head>
 <body>
@@ -884,6 +1001,17 @@
       <h2 class="start-title" id="startTitle">Name That Private Jet</h2>
       <p class="start-sub" style="margin:0.35rem 0 0;opacity:0.75;font-size:0.95rem">jets &amp; helicopters</p>
       <p class="start-sub">How many can you call in a row? Enter your name and start the streak.</p>
+      <p class="mode-label" id="modeLabel">Game mode</p>
+      <div class="mode-toggle" role="group" aria-labelledby="modeLabel">
+        <button type="button" class="mode-btn active" id="modeJetBtn" data-mode="jet" aria-pressed="true">
+          Name the jet
+          <span class="mode-btn-sub">Guess aircraft from photo</span>
+        </button>
+        <button type="button" class="mode-btn" id="modeTailBtn" data-mode="tail" aria-pressed="false">
+          Tail / country
+          <span class="mode-btn-sub">Guess country from registration</span>
+        </button>
+      </div>
       <label class="name-label" for="playerName">Your name</label>
       <input type="text" class="name-input" id="playerName" maxlength="24" autocomplete="nickname" placeholder="Pilot name" enterkeyhint="go">
       <p class="name-error" id="nameError">Enter a name to play.</p>
@@ -918,6 +1046,11 @@
   <main class="main">
     <div class="photo-stage loading" id="stage" aria-label="Aircraft photo">
       <img id="photo" class="hidden" alt="Business aircraft">
+      <div class="reg-prompt" id="regPrompt" aria-hidden="true">
+        <div class="reg-prompt-eyebrow">Registration</div>
+        <div class="reg-prompt-mark" id="regMark">—</div>
+        <p class="reg-prompt-q">Which country is this aircraft registered in?</p>
+      </div>
       <div class="photo-overlay">
         <div class="loading-spinner" aria-hidden="true"></div>
         <div class="error-box">
@@ -1608,6 +1741,317 @@
   const LS_NAME = "nameThatJetPlayerName";
   const LS_BOARD = "nameThatJetLeaderboard";
   const LS_FLAGS = "nameThatJetFlags";
+
+  const LS_BOARD_TAIL = "nameThatJetTailLeaderboard";
+  const LS_MODE = "nameThatJetGameMode";
+  const US_SHARE_CAP = 0.30; // hard cap on N-number draws
+
+  /**
+   * Civil/bizjet-relevant national marks.
+   * weight ≈ relative private/bizjet fleet size (rough ordinal).
+   * US is listed with a high raw weight but sampled under US_SHARE_CAP.
+   * similar: distractor country ids (plausible mix-ups).
+   * region: used to pad distractors from nearby registries.
+   */
+  const REGISTRIES = [
+    { id: "US", country: "United States", prefix: "N", note: "N = United States (FAA)", weight: 100, region: "americas",
+      similar: ["CA", "MX", "BM"],
+      formats: ["N###AA", "N####A", "N#####", "N##AA"] },
+    { id: "CA", country: "Canada", prefix: "C-", note: "C- = Canada (often C-G… / C-F…)", weight: 28, region: "americas",
+      similar: ["US", "BM", "KY"],
+      formats: ["C-GXXX", "C-FXXX", "C-XXXX"] },
+    { id: "GB", country: "United Kingdom", prefix: "G-", note: "G- = United Kingdom", weight: 32, region: "europe",
+      similar: ["IM", "IE", "GG"],
+      formats: ["G-XXXX"] },
+    { id: "DE", country: "Germany", prefix: "D-", note: "D- = Germany", weight: 30, region: "europe",
+      similar: ["AT", "CH", "NL"],
+      formats: ["D-CXXX", "D-IXXX", "D-AXXX", "D-XXXX"] },
+    { id: "FR", country: "France", prefix: "F-", note: "F- = France", weight: 22, region: "europe",
+      similar: ["LU", "CH", "MC"],
+      formats: ["F-XXXX", "F-HXXX"] },
+    { id: "CH", country: "Switzerland", prefix: "HB-", note: "HB- = Switzerland (HB-J… common on jets)", weight: 24, region: "europe",
+      similar: ["AT", "LI", "DE"],
+      formats: ["HB-JXX", "HB-VXX", "HB-XXX"] },
+    { id: "AT", country: "Austria", prefix: "OE-", note: "OE- = Austria", weight: 12, region: "europe",
+      similar: ["CH", "DE", "HU"],
+      formats: ["OE-FXX", "OE-GXX", "OE-XXX"] },
+    { id: "AU", country: "Australia", prefix: "VH-", note: "VH- = Australia", weight: 14, region: "oceania",
+      similar: ["NZ", "PG", "FJ"],
+      formats: ["VH-XXX"] },
+    { id: "NZ", country: "New Zealand", prefix: "ZK-", note: "ZK- = New Zealand", weight: 6, region: "oceania",
+      similar: ["AU", "FJ", "PG"],
+      formats: ["ZK-XXX"] },
+    { id: "JP", country: "Japan", prefix: "JA", note: "JA = Japan", weight: 12, region: "asia",
+      similar: ["KR", "CN", "TW"],
+      formats: ["JA####A", "JA####", "JA#A##"] },
+    { id: "CN", country: "China", prefix: "B-", note: "B- = China (mainland civil marks)", weight: 16, region: "asia",
+      similar: ["HK", "TW", "JP"],
+      formats: ["B-####", "B-#####"] },
+    { id: "HK", country: "Hong Kong", prefix: "B-H / B-K / B-L", note: "B-H… / B-K… / B-L… = Hong Kong", weight: 8, region: "asia",
+      similar: ["CN", "MO", "SG"],
+      formats: ["B-HXX", "B-KXX", "B-LXX"] },
+    { id: "MT", country: "Malta", prefix: "9H-", note: "9H- = Malta (popular bizjet registry)", weight: 26, region: "europe",
+      similar: ["SM", "IM", "GG"],
+      formats: ["9H-XXX", "9H-VXX"] },
+    { id: "BM", country: "Bermuda", prefix: "VP-B", note: "VP-B = Bermuda (common on private jets)", weight: 22, region: "americas",
+      similar: ["KY", "US", "VG"],
+      formats: ["VP-BXX"] },
+    { id: "KY", country: "Cayman Islands", prefix: "VP-C", note: "VP-C = Cayman Islands", weight: 18, region: "americas",
+      similar: ["BM", "VG", "US"],
+      formats: ["VP-CXX"] },
+    { id: "IM", country: "Isle of Man", prefix: "M-", note: "M- = Isle of Man", weight: 20, region: "europe",
+      similar: ["GB", "GG", "JE"],
+      formats: ["M-XXXX"] },
+    { id: "SM", country: "San Marino", prefix: "T7-", note: "T7- = San Marino", weight: 14, region: "europe",
+      similar: ["MT", "IT", "AT"],
+      formats: ["T7-XXX", "T7-XXXX"] },
+    { id: "AW", country: "Aruba", prefix: "P4-", note: "P4- = Aruba", weight: 10, region: "americas",
+      similar: ["CW", "BM", "KY"],
+      formats: ["P4-XXX"] },
+    { id: "AE", country: "United Arab Emirates", prefix: "A6-", note: "A6- = United Arab Emirates", weight: 16, region: "mena",
+      similar: ["QA", "SA", "OM"],
+      formats: ["A6-XXX"] },
+    { id: "QA", country: "Qatar", prefix: "A7-", note: "A7- = Qatar", weight: 10, region: "mena",
+      similar: ["AE", "SA", "BH"],
+      formats: ["A7-XXX"] },
+    { id: "SA", country: "Saudi Arabia", prefix: "HZ-", note: "HZ- = Saudi Arabia", weight: 10, region: "mena",
+      similar: ["AE", "QA", "BH"],
+      formats: ["HZ-XXX", "HZ-AXX"] },
+    { id: "LU", country: "Luxembourg", prefix: "LX-", note: "LX- = Luxembourg", weight: 8, region: "europe",
+      similar: ["BE", "FR", "DE"],
+      formats: ["LX-XXX"] },
+    { id: "PT", country: "Portugal", prefix: "CS-", note: "CS- = Portugal (CS-D… common on jets)", weight: 10, region: "europe",
+      similar: ["ES", "MT", "BR"],
+      formats: ["CS-DXX", "CS-XXX"] },
+    { id: "ES", country: "Spain", prefix: "EC-", note: "EC- = Spain", weight: 12, region: "europe",
+      similar: ["PT", "AD", "FR"],
+      formats: ["EC-XXX"] },
+    { id: "IT", country: "Italy", prefix: "I-", note: "I- = Italy", weight: 12, region: "europe",
+      similar: ["SM", "CH", "AT"],
+      formats: ["I-XXXX"] },
+    { id: "NL", country: "Netherlands", prefix: "PH-", note: "PH- = Netherlands", weight: 10, region: "europe",
+      similar: ["BE", "DE", "LU"],
+      formats: ["PH-XXX"] },
+    { id: "DK", country: "Denmark", prefix: "OY-", note: "OY- = Denmark", weight: 6, region: "europe",
+      similar: ["SE", "NO", "FI"],
+      formats: ["OY-XXX"] },
+    { id: "SE", country: "Sweden", prefix: "SE-", note: "SE- = Sweden", weight: 7, region: "europe",
+      similar: ["DK", "NO", "FI"],
+      formats: ["SE-XXX"] },
+    { id: "NO", country: "Norway", prefix: "LN-", note: "LN- = Norway", weight: 5, region: "europe",
+      similar: ["SE", "DK", "FI"],
+      formats: ["LN-XXX"] },
+    { id: "FI", country: "Finland", prefix: "OH-", note: "OH- = Finland", weight: 4, region: "europe",
+      similar: ["SE", "EE", "NO"],
+      formats: ["OH-XXX"] },
+    { id: "IE", country: "Ireland", prefix: "EI-", note: "EI- = Ireland", weight: 10, region: "europe",
+      similar: ["GB", "IM", "MT"],
+      formats: ["EI-XXX"] },
+    { id: "BE", country: "Belgium", prefix: "OO-", note: "OO- = Belgium", weight: 6, region: "europe",
+      similar: ["NL", "LU", "FR"],
+      formats: ["OO-XXX"] },
+    { id: "CZ", country: "Czechia", prefix: "OK-", note: "OK- = Czechia", weight: 5, region: "europe",
+      similar: ["SK", "AT", "PL"],
+      formats: ["OK-XXX"] },
+    { id: "PL", country: "Poland", prefix: "SP-", note: "SP- = Poland", weight: 5, region: "europe",
+      similar: ["CZ", "DE", "LT"],
+      formats: ["SP-XXX"] },
+    { id: "MX", country: "Mexico", prefix: "XA- / XB-", note: "XA- / XB- = Mexico", weight: 10, region: "americas",
+      similar: ["US", "GT", "BZ"],
+      formats: ["XA-XXX", "XB-XXX"] },
+    { id: "BR", country: "Brazil", prefix: "PP- / PR- / PT-", note: "PP- / PR- / PT- = Brazil", weight: 12, region: "americas",
+      similar: ["AR", "UY", "PT"],
+      formats: ["PP-XXX", "PR-XXX", "PT-XXX"] },
+    { id: "ZA", country: "South Africa", prefix: "ZS-", note: "ZS- = South Africa", weight: 6, region: "africa",
+      similar: ["NA", "BW", "MZ"],
+      formats: ["ZS-XXX"] },
+    { id: "TR", country: "Türkiye", prefix: "TC-", note: "TC- = Türkiye", weight: 8, region: "mena",
+      similar: ["CY", "GR", "AZ"],
+      formats: ["TC-XXX"] },
+    { id: "GG", country: "Guernsey", prefix: "2-", note: "2- = Guernsey", weight: 8, region: "europe",
+      similar: ["IM", "JE", "GB"],
+      formats: ["2-XXXX"] },
+    { id: "VG", country: "British Virgin Islands", prefix: "VP-L", note: "VP-L = British Virgin Islands", weight: 7, region: "americas",
+      similar: ["BM", "KY", "AI"],
+      formats: ["VP-LXX"] },
+    { id: "SG", country: "Singapore", prefix: "9V-", note: "9V- = Singapore", weight: 5, region: "asia",
+      similar: ["MY", "ID", "HK"],
+      formats: ["9V-XXX"] },
+    { id: "IN", country: "India", prefix: "VT-", note: "VT- = India", weight: 6, region: "asia",
+      similar: ["PK", "LK", "BD"],
+      formats: ["VT-XXX"] },
+    { id: "IL", country: "Israel", prefix: "4X-", note: "4X- = Israel", weight: 5, region: "mena",
+      similar: ["CY", "JO", "EG"],
+      formats: ["4X-XXX"] },
+    { id: "KR", country: "South Korea", prefix: "HL", note: "HL = South Korea", weight: 5, region: "asia",
+      similar: ["JP", "CN", "TW"],
+      formats: ["HL####"] },
+    { id: "RU", country: "Russia", prefix: "RA-", note: "RA- = Russia", weight: 6, region: "europe",
+      similar: ["BY", "KZ", "UA"],
+      formats: ["RA-#####"] }
+  ];
+
+  // Extra country names used only as distractors (not drawn as correct answers)
+  const DISTRACTOR_ONLY = [
+    { id: "MC", country: "Monaco", region: "europe" },
+    { id: "LI", country: "Liechtenstein", region: "europe" },
+    { id: "HU", country: "Hungary", region: "europe" },
+    { id: "SK", country: "Slovakia", region: "europe" },
+    { id: "EE", country: "Estonia", region: "europe" },
+    { id: "LT", country: "Lithuania", region: "europe" },
+    { id: "CY", country: "Cyprus", region: "europe" },
+    { id: "GR", country: "Greece", region: "europe" },
+    { id: "AD", country: "Andorra", region: "europe" },
+    { id: "JE", country: "Jersey", region: "europe" },
+    { id: "CW", country: "Curaçao", region: "americas" },
+    { id: "AI", country: "Anguilla", region: "americas" },
+    { id: "GT", country: "Guatemala", region: "americas" },
+    { id: "BZ", country: "Belize", region: "americas" },
+    { id: "AR", country: "Argentina", region: "americas" },
+    { id: "UY", country: "Uruguay", region: "americas" },
+    { id: "BH", country: "Bahrain", region: "mena" },
+    { id: "OM", country: "Oman", region: "mena" },
+    { id: "JO", country: "Jordan", region: "mena" },
+    { id: "EG", country: "Egypt", region: "mena" },
+    { id: "AZ", country: "Azerbaijan", region: "mena" },
+    { id: "TW", country: "Taiwan", region: "asia" },
+    { id: "MO", country: "Macau", region: "asia" },
+    { id: "MY", country: "Malaysia", region: "asia" },
+    { id: "ID", country: "Indonesia", region: "asia" },
+    { id: "PK", country: "Pakistan", region: "asia" },
+    { id: "LK", country: "Sri Lanka", region: "asia" },
+    { id: "BD", country: "Bangladesh", region: "asia" },
+    { id: "PG", country: "Papua New Guinea", region: "oceania" },
+    { id: "FJ", country: "Fiji", region: "oceania" },
+    { id: "NA", country: "Namibia", region: "africa" },
+    { id: "BW", country: "Botswana", region: "africa" },
+    { id: "MZ", country: "Mozambique", region: "africa" },
+    { id: "BY", country: "Belarus", region: "europe" },
+    { id: "KZ", country: "Kazakhstan", region: "asia" },
+    { id: "UA", country: "Ukraine", region: "europe" }
+  ];
+
+  const REG_BY_ID = {};
+  REGISTRIES.forEach(function (r) { REG_BY_ID[r.id] = r; });
+  DISTRACTOR_ONLY.forEach(function (r) {
+    if (!REG_BY_ID[r.id]) REG_BY_ID[r.id] = r;
+  });
+
+  function randInt(n) {
+    return Math.floor(Math.random() * n);
+  }
+
+  function pickWeighted(items, weightFn) {
+    let total = 0;
+    const weights = items.map(function (it) {
+      const w = Math.max(0, weightFn(it));
+      total += w;
+      return w;
+    });
+    if (total <= 0) return items[randInt(items.length)];
+    let r = Math.random() * total;
+    for (let i = 0; i < items.length; i++) {
+      r -= weights[i];
+      if (r <= 0) return items[i];
+    }
+    return items[items.length - 1];
+  }
+
+  function randomLetters(n) {
+    const avoid = "IOQ"; // often avoided on some registries; still fine for look
+    let s = "";
+    while (s.length < n) {
+      const c = String.fromCharCode(65 + randInt(26));
+      if (avoid.indexOf(c) >= 0 && Math.random() < 0.7) continue;
+      s += c;
+    }
+    return s;
+  }
+
+  function randomDigits(n) {
+    let s = "";
+    for (let i = 0; i < n; i++) s += String(randInt(10));
+    // avoid all-zero leading weirdness for first digit when n>1
+    if (n > 1 && s[0] === "0") s = String(1 + randInt(9)) + s.slice(1);
+    return s;
+  }
+
+  function expandRegFormat(fmt) {
+    let out = "";
+    for (let i = 0; i < fmt.length; i++) {
+      const ch = fmt[i];
+      if (ch === "X") out += randomLetters(1);
+      else if (ch === "#") out += randomDigits(1);
+      else if (ch === "A") out += randomLetters(1);
+      else out += ch;
+    }
+    return out;
+  }
+
+  function generateRegistration(reg) {
+    const formats = reg.formats || [(reg.prefix || "") + "XXX"];
+    const fmt = formats[randInt(formats.length)];
+    return expandRegFormat(fmt);
+  }
+
+  /** Sample a registry with US share capped; others by relative weight. */
+  function sampleRegistry() {
+    const us = REG_BY_ID.US;
+    const others = REGISTRIES.filter(function (r) { return r.id !== "US"; });
+    if (Math.random() < US_SHARE_CAP) return us;
+    return pickWeighted(others, function (r) { return r.weight; });
+  }
+
+  function countryName(id) {
+    const r = REG_BY_ID[id];
+    return r ? r.country : id;
+  }
+
+  /**
+   * Build 4 country options: correct + 3 plausible distractors.
+   * Prefer similar[] then same region; never two answers that share the same country.
+   * (Each registry id maps to exactly one country, so unique ids suffice.)
+   */
+  function buildCountryChoices(correct) {
+    const pickedIds = new Set([correct.id]);
+    const picked = [correct];
+
+    function tryAdd(id) {
+      if (!id || pickedIds.has(id)) return;
+      // Never add another registry that is the same country string
+      const name = countryName(id);
+      for (const p of picked) {
+        if (p.country === name) return;
+      }
+      const rec = REG_BY_ID[id];
+      if (!rec || !rec.country) return;
+      pickedIds.add(id);
+      picked.push({ id: id, country: rec.country, region: rec.region || "", note: rec.note || "" });
+    }
+
+    // 1) curated similars
+    shuffle((correct.similar || []).slice()).forEach(tryAdd);
+    // 2) same region from playable registries
+    const sameRegion = shuffle(REGISTRIES.filter(function (r) {
+      return r.id !== correct.id && r.region === correct.region;
+    }));
+    sameRegion.forEach(function (r) { tryAdd(r.id); });
+    // 3) distractor-only same region
+    shuffle(DISTRACTOR_ONLY.filter(function (d) { return d.region === correct.region; }))
+      .forEach(function (d) { tryAdd(d.id); });
+    // 4) any remaining playable
+    shuffle(REGISTRIES.slice()).forEach(function (r) { tryAdd(r.id); });
+    // 5) any distractor-only
+    shuffle(DISTRACTOR_ONLY.slice()).forEach(function (d) { tryAdd(d.id); });
+
+    const four = shuffle(picked.slice(0, 4));
+    // Safety: ensure correct is included
+    if (!four.some(function (c) { return c.id === correct.id; })) {
+      four[0] = { id: correct.id, country: correct.country, region: correct.region, note: correct.note };
+    }
+    return four;
+  }
+
   const LB_CAP = 20;
   const FLAGS_CAP = 50;
   // Parent may fill this later for optional silent POST of flag snapshots.
@@ -1655,13 +2099,14 @@
   let answered = 0;
   let streak = 0;
   let playerName = "";
+  let gameMode = "jet"; // "jet" | "tail"
   let revealed = false;
   let advancing = false;
   let runEnded = false;
   let canAdvance = false;
   let loadGen = 0;
   let usedFileTitles = new Set();
-  let current = null; // { type, image, registration }
+  let current = null; // jet: { type, image, registration } | tail: { mode, registry, registration, options }
   let currentOptions = []; // labels shown this round
   let selectedLabel = null; // player pick, or null if not answered
   let nextReady = null; // preloaded round data
@@ -1698,6 +2143,57 @@
   const lbStreakFinal = document.getElementById("lbStreakFinal");
   const lbRank = document.getElementById("lbRank");
   const lbList = document.getElementById("lbList");
+  const modeJetBtn = document.getElementById("modeJetBtn");
+  const modeTailBtn = document.getElementById("modeTailBtn");
+  const regPrompt = document.getElementById("regPrompt");
+  const regMark = document.getElementById("regMark");
+  const headerTitle = document.querySelector(".header h1");
+  const hdrSub = document.querySelector(".hdr-sub");
+
+
+  function isTailMode() {
+    return gameMode === "tail";
+  }
+
+  function boardKey() {
+    return isTailMode() ? LS_BOARD_TAIL : LS_BOARD;
+  }
+
+  function setGameMode(mode) {
+    gameMode = (mode === "tail") ? "tail" : "jet";
+    try { localStorage.setItem(LS_MODE, gameMode); } catch (e) {}
+    if (modeJetBtn && modeTailBtn) {
+      modeJetBtn.classList.toggle("active", gameMode === "jet");
+      modeTailBtn.classList.toggle("active", gameMode === "tail");
+      modeJetBtn.setAttribute("aria-pressed", gameMode === "jet" ? "true" : "false");
+      modeTailBtn.setAttribute("aria-pressed", gameMode === "tail" ? "true" : "false");
+    }
+    if (headerTitle) {
+      headerTitle.textContent = isTailMode() ? "Tail / Country" : "Name That Jet";
+    }
+    if (hdrSub) {
+      hdrSub.textContent = isTailMode() ? "registration → country" : "jets & helicopters";
+    }
+    if (gameShell) {
+      gameShell.classList.toggle("mode-tail", isTailMode());
+      gameShell.classList.toggle("mode-jet", !isTailMode());
+    }
+    if (choicesEl) {
+      choicesEl.setAttribute("aria-label", isTailMode() ? "Guess the country" : "Guess the aircraft");
+    }
+    if (flagBtn) {
+      flagBtn.title = isTailMode()
+        ? "Flag wrong registration or options"
+        : "Flag wrong photo or options";
+    }
+  }
+
+  function restoreGameMode() {
+    let m = "jet";
+    try { m = localStorage.getItem(LS_MODE) || "jet"; } catch (e) {}
+    setGameMode(m);
+  }
+
 
   function typeKey(t) {
     return t.manufacturer + "|" + t.displayName;
@@ -2101,6 +2597,8 @@
   }
 
   function prefetchWhileNameEntry() {
+    // Only warm jet images on the name screen (default / selected jet mode)
+    if (isTailMode()) return;
     if (!deck.length) refillDeck(null);
     warmUpcomingTypes(5);
     if (!preloadPromise && !nextReady) {
@@ -2114,7 +2612,125 @@
   }
 
 
+
+  function prepareTailRound() {
+    const registry = sampleRegistry();
+    const registration = generateRegistration(registry);
+    const options = buildCountryChoices(registry);
+    return Promise.resolve({
+      mode: "tail",
+      registry: registry,
+      registration: registration,
+      options: options,
+      // placeholders so jet-path guards don't explode if mis-routed
+      type: null,
+      image: null
+    });
+  }
+
+  function renderCountryChoices(opts, correctId) {
+    currentOptions = opts.map(function (o) { return o.country; });
+    selectedLabel = null;
+    choicesEl.innerHTML = "";
+    opts.forEach(function (o) {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "choice-btn";
+      btn.textContent = o.country;
+      btn.dataset.key = o.id;
+      btn.addEventListener("click", function (e) {
+        e.stopPropagation();
+        onChooseCountry(o);
+      });
+      choicesEl.appendChild(btn);
+    });
+    choicesEl.classList.add("visible");
+  }
+
+  function applyTailRound(data) {
+    current = data;
+    selectedLabel = null;
+
+    showLoading();
+    stage.classList.add("tail-mode");
+    stage.classList.remove("loading", "error", "revealed");
+    photo.classList.add("hidden");
+    photo.removeAttribute("src");
+
+    if (regMark) regMark.textContent = data.registration;
+    if (regPrompt) regPrompt.setAttribute("aria-hidden", "false");
+
+    factEl.textContent = data.registry.note || (data.registry.prefix + " = " + data.registry.country);
+    hintText.textContent = "";
+    hintBtn.style.display = "none";
+    attrib.innerHTML = "";
+    attrib.classList.remove("visible");
+
+    mfrEl.textContent = "";
+    nameEl.textContent = data.registry.country;
+    subEl.textContent = data.registry.note || data.registry.prefix;
+
+    renderCountryChoices(data.options, data.registry.id);
+
+    advancing = false;
+    setAdvanceUi(false);
+    updateScore();
+    startPreloadNext();
+  }
+
+  function onChooseCountry(selected) {
+    if (revealed || !current || current.mode !== "tail") return;
+    if (stage.classList.contains("loading") || stage.classList.contains("error")) return;
+    revealed = true;
+    selectedLabel = selected.country;
+    setAdvanceUi(false);
+
+    const correctId = current.registry.id;
+    const selectedId = selected.id;
+    const isCorrect = selectedId === correctId;
+
+    const buttons = choicesEl.querySelectorAll(".choice-btn");
+    buttons.forEach(function (btn) {
+      btn.disabled = true;
+      const key = btn.dataset.key;
+      if (key === correctId) {
+        btn.classList.add("correct");
+      } else if (key === selectedId && !isCorrect) {
+        btn.classList.add("wrong");
+      } else {
+        btn.classList.add("dimmed");
+      }
+    });
+
+    stage.classList.add("revealed");
+    afterReveal.classList.add("visible");
+    // Prefix note already in factEl
+    factEl.textContent = current.registry.note ||
+      (current.registry.prefix + " = " + current.registry.country);
+
+    answered++;
+    if (isCorrect) {
+      called++;
+      streak++;
+      updateScore();
+      requestAnimationFrame(function () {
+        setTimeout(function () {
+          if (revealed && !runEnded && !advancing) setAdvanceUi(true);
+        }, 100);
+      });
+    } else {
+      const finalStreak = streak;
+      streak = 0;
+      updateScore();
+      setAdvanceUi(false);
+      setTimeout(function () {
+        endRun(finalStreak);
+      }, 400);
+    }
+  }
+
   async function prepareRound(preferType) {
+    if (isTailMode()) return prepareTailRound();
     const tried = new Set();
     let attempts = 0;
     const maxAttempts = Math.min(10, PLAYABLE.length);
@@ -2188,7 +2804,7 @@
 
   function loadLeaderboard() {
     try {
-      const raw = localStorage.getItem(LS_BOARD);
+      const raw = localStorage.getItem(boardKey());
       if (!raw) return [];
       const arr = JSON.parse(raw);
       return Array.isArray(arr) ? arr : [];
@@ -2198,7 +2814,7 @@
   }
 
   function saveLeaderboard(entries) {
-    localStorage.setItem(LS_BOARD, JSON.stringify(entries.slice(0, LB_CAP)));
+    localStorage.setItem(boardKey(), JSON.stringify(entries.slice(0, LB_CAP)));
   }
 
   function sortBoard(entries) {
@@ -2254,7 +2870,9 @@
       const empty = document.createElement("li");
       empty.className = "lb-empty";
       empty.style.display = "block";
-      empty.textContent = "No streaks yet — get one right to start the board.";
+      empty.textContent = isTailMode()
+        ? "No streaks yet — name a country to start the board."
+        : "No streaks yet — get one right to start the board.";
       lbList.appendChild(empty);
       return board;
     }
@@ -2296,6 +2914,12 @@
         : "No streak recorded";
     }
     lbStreakFinal.innerHTML = String(finalStreak) + "<span>in a row</span>";
+    const lbHeading = document.querySelector(".lb-heading");
+    if (lbHeading) {
+      lbHeading.textContent = isTailMode()
+        ? "Longest streaks · Tail / country"
+        : "Longest streaks · Name the jet";
+    }
     renderLeaderboard(lastLbEntryId);
     lbScreen.classList.remove("hidden");
     // Leave game visible underneath; overlay covers it
@@ -2339,6 +2963,7 @@
     nameError.classList.remove("visible");
     const saved = (localStorage.getItem(LS_NAME) || "").trim();
     playerNameInput.value = saved;
+    setGameMode(gameMode); // refresh toggle UI
     try { playerNameInput.focus(); } catch (e) {}
     try { prefetchWhileNameEntry(); } catch (e) {}
   }
@@ -2353,6 +2978,13 @@
     nameError.classList.remove("visible");
     playerName = name;
     localStorage.setItem(LS_NAME, name);
+    // Lock in mode from toggle (already set via clicks; re-apply for safety)
+    const activeModeBtn = document.querySelector(".mode-btn.active");
+    if (activeModeBtn && activeModeBtn.dataset.mode) {
+      setGameMode(activeModeBtn.dataset.mode);
+    } else {
+      setGameMode(gameMode);
+    }
     startScreen.classList.add("hidden");
     lbScreen.classList.add("hidden");
     gameShell.classList.remove("hidden-game");
@@ -2360,13 +2992,20 @@
     const savedPromise = preloadPromise;
     const savedDeck = deck;
     const savedDeckIndex = deckIndex;
+    const modeAtStart = gameMode;
     resetRunState();
-    if (savedDeck && savedDeck.length) {
+    if (modeAtStart === "jet" && savedDeck && savedDeck.length) {
       deck = savedDeck;
       deckIndex = savedDeckIndex;
     }
-    nextReady = savedReady;
-    preloadPromise = savedPromise;
+    // Only reuse preloaded jet round when staying in jet mode
+    if (modeAtStart === "jet") {
+      nextReady = savedReady;
+      preloadPromise = savedPromise;
+    } else {
+      nextReady = null;
+      preloadPromise = null;
+    }
     loadInitial();
   }
 
@@ -2381,14 +3020,21 @@
     nameEl.textContent = "";
     subEl.textContent = "";
     photo.alt = "Business aircraft";
+    if (regMark) regMark.textContent = "—";
+    if (regPrompt) regPrompt.setAttribute("aria-hidden", "true");
     setAdvanceUi(false);
   }
 
   function showLoading() {
     stage.classList.add("loading");
     stage.classList.remove("error", "revealed");
+    if (!isTailMode()) stage.classList.remove("tail-mode");
     photo.classList.add("hidden");
-    hintBtn.style.display = "";
+    if (isTailMode()) {
+      hintBtn.style.display = "none";
+    } else {
+      hintBtn.style.display = "";
+    }
     hintText.classList.remove("visible");
     hintText.textContent = "";
     clearAnswerUi();
@@ -2399,15 +3045,20 @@
     stage.classList.remove("loading", "revealed");
     stage.classList.add("error");
     photo.classList.add("hidden");
-    errorMsg.textContent = msg || "Couldn't load image.";
+    errorMsg.textContent = msg || (isTailMode() ? "Couldn't load round." : "Couldn't load image.");
     clearAnswerUi();
   }
 
   function applyRound(data) {
+    if (data && data.mode === "tail") {
+      applyTailRound(data);
+      return;
+    }
     current = data;
     usedFileTitles.add(data.image.title);
 
     showLoading();
+    stage.classList.remove("tail-mode");
     // Keep alt generic until after answer — manufacturer/type would leak
     photo.alt = "Business aircraft";
     photo.src = data.image.url;
@@ -2474,8 +3125,10 @@
   async function loadInitial() {
     const gen = ++loadGen;
     showLoading();
-    if (!deck.length) refillDeck(null);
-    warmUpcomingTypes(5);
+    if (!isTailMode()) {
+      if (!deck.length) refillDeck(null);
+      warmUpcomingTypes(5);
+    }
     try {
       let data = nextReady;
       nextReady = null;
@@ -2483,17 +3136,20 @@
         try { data = await preloadPromise; } catch (_) {}
       }
       preloadPromise = null;
+      // Drop stale jet preload if we switched to tail (or vice versa)
+      if (data && isTailMode() && data.mode !== "tail") data = null;
+      if (data && !isTailMode() && data.mode === "tail") data = null;
       if (!data) data = await prepareRound(null);
       if (gen !== loadGen) return;
       applyRound(data);
     } catch (e) {
       if (gen !== loadGen) return;
-      showError(e.message || "Couldn't load image.");
+      showError(e.message || (isTailMode() ? "Couldn't load round." : "Couldn't load image."));
     }
   }
 
   function onChoose(selected) {
-    if (revealed || !current || stage.classList.contains("loading") || stage.classList.contains("error")) {
+    if (revealed || !current || current.mode === "tail" || stage.classList.contains("loading") || stage.classList.contains("error")) {
       return;
     }
     revealed = true;
@@ -2574,6 +3230,8 @@
       if (!data && preloadPromise) {
         try { data = await preloadPromise; } catch (_) {}
       }
+      if (data && isTailMode() && data.mode !== "tail") data = null;
+      if (data && !isTailMode() && data.mode === "tail") data = null;
       if (gen !== loadGen) return;
       if (!data) {
         data = await prepareRound(null);
@@ -2582,7 +3240,7 @@
       applyRound(data);
     } catch (e) {
       if (gen !== loadGen) return;
-      showError(e.message || "Couldn't load next image.");
+      showError(e.message || (isTailMode() ? "Couldn't load next round." : "Couldn't load next image."));
       advancing = false;
     }
   }
@@ -2646,10 +3304,29 @@
   }
 
   function captureFlagSnapshot() {
-    if (!current || !current.type || !current.image) return null;
+    if (!current) return null;
+    if (current.mode === "tail") {
+      return {
+        mode: "tail",
+        registration: current.registration || "",
+        prefix: (current.registry && current.registry.prefix) || "",
+        countryId: (current.registry && current.registry.id) || "",
+        country: (current.registry && current.registry.country) || "",
+        note: (current.registry && current.registry.note) || "",
+        options: currentOptions.slice(),
+        answered: !!revealed,
+        selected: selectedLabel,
+        streak: streak,
+        playerName: playerName || "",
+        timestamp: new Date().toISOString(),
+        pageUrl: location.href.split("#")[0]
+      };
+    }
+    if (!current.type || !current.image) return null;
     const type = current.type;
     const img = current.image;
     return {
+      mode: "jet",
       imageUrl: absoluteAssetUrl(img.url),
       imageSource: img.source || "unknown",
       imageTitle: img.title || "",
@@ -2685,8 +3362,23 @@
     const opts = (snap.options && snap.options.length)
       ? snap.options.map(function (o, i) { return (i + 1) + ") " + o; }).join("\n")
       : "(none)";
+    if (snap.mode === "tail") {
+      return [
+        "Name That Jet — flagged round (Tail / country)",
+        "Mode: tail",
+        "Registration: " + (snap.registration || "(none)"),
+        "Prefix: " + (snap.prefix || ""),
+        "Labeled country: " + (snap.country || "") + " (" + (snap.countryId || "") + ")",
+        "Note: " + (snap.note || ""),
+        "Options:",
+        opts,
+        "Answered: " + (snap.answered ? ("yes — " + (snap.selected || "?")) : "no"),
+        "When: " + snap.timestamp
+      ].join("\n");
+    }
     return [
       "Name That Jet — flagged round",
+      "Mode: jet",
       "Image: " + (snap.imageUrl || "(none)"),
       "Labeled type: " + snap.typeName + " (" + snap.typeId + ")",
       "Options:",
@@ -2781,12 +3473,12 @@
 
   function openFlagReport() {
     if (!current || stage.classList.contains("loading") || stage.classList.contains("error")) {
-      showFlagToast("No photo to flag yet");
+      showFlagToast(isTailMode() ? "No round to flag yet" : "No photo to flag yet");
       return;
     }
     const snap = captureFlagSnapshot();
     if (!snap) {
-      showFlagToast("No photo to flag yet");
+      showFlagToast(isTailMode() ? "No round to flag yet" : "No photo to flag yet");
       return;
     }
     saveFlagSnapshot(snap);
@@ -2814,7 +3506,23 @@
   });
 
 
+  function onModeBtnClick(e) {
+    const btn = e.currentTarget;
+    const mode = btn && btn.dataset ? btn.dataset.mode : "jet";
+    setGameMode(mode);
+    // Clear any jet preload when switching to tail so Start is snappy
+    if (isTailMode()) {
+      nextReady = null;
+      preloadPromise = null;
+    } else {
+      try { prefetchWhileNameEntry(); } catch (err) {}
+    }
+  }
+  if (modeJetBtn) modeJetBtn.addEventListener("click", onModeBtnClick);
+  if (modeTailBtn) modeTailBtn.addEventListener("click", onModeBtnClick);
+
   // Boot — name screen first; game loads after Start
+  restoreGameMode();
   showNameScreen();
 })();
 </script>
