@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>Name That Private Jet</title>
-<meta name="jet-build" content="tail-reg-visible-2026-09-30">
+<meta name="jet-build" content="flag-ntfy-2026-09-30">
 <meta name="description" content="Name that private jet — and helicopter — from ramp photos.">
 <style>
   :root {
@@ -2311,9 +2311,9 @@
 
   const LB_CAP = 20;
   const FLAGS_CAP = 50;
-  // Parent may fill this later for optional silent POST of flag snapshots.
-  // Leave empty: Flag never navigates; localStorage + clipboard + toast only.
-  const FLAG_WEBHOOK_URL = ''; // parent will fill
+  // Flag → ntfy.sh for bot review (no GitHub login, no user-configured webhook).
+  // Subscribe/poll: https://ntfy.sh/skyway4k-jet-trivia-flags
+  const FLAG_NTFY_URL = "https://ntfy.sh/skyway4k-jet-trivia-flags";
 
   // --- Image / search caches (memory + sessionStorage) ---
   const SS_SEARCH = "nameThatJetSearchCache_v1";
@@ -3870,18 +3870,56 @@
     flagToastTimer = setTimeout(hideFlagToast, hold);
   }
 
-  function postFlagWebhook(snap) {
-    const url = (typeof FLAG_WEBHOOK_URL === "string") ? FLAG_WEBHOOK_URL.trim() : "";
+  function buildFlagNtfyBody(snap) {
+    // Compact JSON for ntfy (public topic) — round facts only, no player name.
+    if (snap.mode === "tail") {
+      return JSON.stringify({
+        mode: "tail",
+        registration: snap.registration || "",
+        prefix: snap.prefix || "",
+        country: snap.country || "",
+        countryId: snap.countryId || "",
+        options: snap.options || [],
+        answered: !!snap.answered,
+        selected: snap.selected || "",
+        timestamp: snap.timestamp || ""
+      });
+    }
+    return JSON.stringify({
+      mode: "jet",
+      typeName: snap.typeName || "",
+      typeId: snap.typeId || "",
+      imageUrl: snap.imageUrl || "",
+      options: snap.options || [],
+      answered: !!snap.answered,
+      selected: snap.selected || "",
+      timestamp: snap.timestamp || ""
+    });
+  }
+
+  function flagNtfyTitle(snap) {
+    if (snap.mode === "tail") {
+      return "Flag: " + (snap.registration || snap.country || "tail");
+    }
+    return "Flag: " + (snap.typeName || snap.typeId || "jet");
+  }
+
+  /** Soft-fail POST to ntfy.sh; localStorage save already done. */
+  function postFlagNtfy(snap) {
+    const url = (typeof FLAG_NTFY_URL === "string") ? FLAG_NTFY_URL.trim() : "";
     if (!url) return;
     try {
       fetch(url, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(snap),
+        headers: {
+          "Title": String(flagNtfyTitle(snap)).slice(0, 250),
+          "Tags": "warning"
+        },
+        body: buildFlagNtfyBody(snap),
         mode: "cors",
         keepalive: true
-      }).catch(function () { /* silent — local save already done */ });
-    } catch (e) { /* ignore */ }
+      }).catch(function () { /* soft-fail — toast + local save already done */ });
+    } catch (e) { /* soft-fail */ }
   }
 
   function openFlagReport() {
@@ -3895,22 +3933,9 @@
       return;
     }
     saveFlagSnapshot(snap);
-    postFlagWebhook(snap);
-    const report = buildFlagReportText(snap);
-    lastFlagReportText = report;
-    copyTextToClipboard(report).then(function (ok) {
-      if (ok) {
-        showFlagToast("Flagged and copied — paste it in chat with Plane Trivia Bot and I’ll fix it.", {
-          copyBody: report,
-          holdMs: 9000
-        });
-      } else {
-        showFlagToast("Flagged — tap Copy report, then paste it in chat with Plane Trivia Bot.", {
-          copyBody: report,
-          holdMs: 12000
-        });
-      }
-    });
+    lastFlagReportText = buildFlagReportText(snap);
+    showFlagToast("Flagged — I’ll review this", { holdMs: 4200 });
+    postFlagNtfy(snap);
   }
 
   flagBtn.addEventListener("click", function (e) {
