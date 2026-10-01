@@ -1144,6 +1144,46 @@
     color: var(--accent);
   }
 
+  /* Miss: prefix→country is the memorable hero flash */
+  .reg-prompt.is-answered.answer-miss .reg-reveal-country {
+    font-size: clamp(1.45rem, 5.4vw, 2.85rem);
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    color: #fff;
+    max-width: 34rem;
+    text-wrap: balance;
+    text-shadow:
+      0 0 24px rgba(61, 158, 255, 0.45),
+      0 2px 12px rgba(0, 0, 0, 0.55);
+    animation: teachFlash 0.55s ease-out;
+  }
+
+  .reg-prompt.is-answered.answer-miss .reg-reveal-note:empty {
+    display: none;
+  }
+
+  .reg-prompt.is-answered.answer-miss .reg-reveal-status {
+    letter-spacing: 0.12em;
+  }
+
+  @keyframes teachFlash {
+    0% {
+      opacity: 0;
+      transform: scale(0.86);
+      filter: brightness(1.35);
+    }
+    55% {
+      opacity: 1;
+      transform: scale(1.06);
+      filter: brightness(1.12);
+    }
+    100% {
+      opacity: 1;
+      transform: scale(1);
+      filter: brightness(1);
+    }
+  }
+
 
 </style>
 </head>
@@ -3281,6 +3321,30 @@
     updateScore();
   }
 
+  // Playful PG nicknames only — never mean insults
+  const MISS_NICKNAMES = [
+    "silly goose",
+    "goofball",
+    "airhead",
+    "champ",
+    "sport",
+    "wingnut",
+    "hotshot",
+    "buddy"
+  ];
+
+  function teachLineFor(registry, withNickname) {
+    if (!registry) return "";
+    const prefix = (registry.prefix || "").trim();
+    const country = registry.country || "";
+    let line = "";
+    if (prefix && country) line = prefix + " is " + country;
+    else line = country || prefix;
+    if (!withNickname || !line) return line;
+    const nick = MISS_NICKNAMES[Math.floor(Math.random() * MISS_NICKNAMES.length)];
+    return line + ", " + nick + ".";
+  }
+
   function clearRegReveal() {
     if (regPrompt) {
       regPrompt.classList.remove("is-answered", "answer-ok", "answer-miss");
@@ -3289,7 +3353,10 @@
       regRevealStatus.textContent = "";
       regRevealStatus.classList.remove("ok", "miss");
     }
-    if (regRevealCountry) regRevealCountry.textContent = "";
+    if (regRevealCountry) {
+      regRevealCountry.textContent = "";
+      regRevealCountry.classList.remove("teach-flash");
+    }
     if (regRevealNote) regRevealNote.textContent = "";
   }
 
@@ -3303,12 +3370,21 @@
     regPrompt.classList.toggle("answer-ok", !!isCorrect);
     regPrompt.classList.toggle("answer-miss", !isCorrect);
     if (regRevealStatus) {
-      regRevealStatus.textContent = isCorrect ? "Correct" : "Correct country";
+      regRevealStatus.textContent = isCorrect ? "Correct" : "Not quite";
       regRevealStatus.classList.toggle("ok", !!isCorrect);
       regRevealStatus.classList.toggle("miss", !isCorrect);
     }
-    if (regRevealCountry) regRevealCountry.textContent = country;
-    if (regRevealNote) regRevealNote.textContent = note;
+    if (regRevealCountry) {
+      // Miss: hero flash = "EI- is Ireland, silly goose."; correct: country name
+      regRevealCountry.textContent = isCorrect
+        ? country
+        : teachLineFor(current.registry, true);
+      regRevealCountry.classList.toggle("teach-flash", !isCorrect);
+    }
+    if (regRevealNote) {
+      // Miss: nickname lives in the hero line — keep note empty so teach stays hero
+      regRevealNote.textContent = isCorrect ? note : "";
+    }
   }
 
   function setAdvanceUi(on, opts) {
