@@ -992,6 +992,62 @@
   .game-shell.mode-tail .hint-row { display: none; }
   .game-shell.mode-tail .attrib { display: none !important; }
 
+  /* Tail reveal: teach the country on the stage (correct or miss) */
+  .reg-reveal {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    max-width: 36rem;
+    margin-top: 4px;
+    animation: fadeIn 0.18s ease;
+  }
+
+  .reg-prompt.is-answered .reg-prompt-q { display: none; }
+  .reg-prompt.is-answered .reg-reveal { display: flex; }
+
+  .reg-reveal-status {
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .reg-reveal-status.ok { color: var(--success); }
+  .reg-reveal-status.miss { color: var(--danger); }
+
+  .reg-reveal-country {
+    font-size: clamp(1.55rem, 5.5vw, 2.75rem);
+    font-weight: 800;
+    line-height: 1.15;
+    color: var(--text);
+    text-wrap: balance;
+  }
+
+  .reg-prompt.is-answered.answer-ok .reg-reveal-country {
+    color: var(--success);
+  }
+
+  .reg-reveal-note {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    line-height: 1.4;
+    max-width: 28rem;
+  }
+
+  .reg-prompt.is-answered .reg-prompt-mark {
+    font-size: clamp(1.25rem, 4.5vw, 2.2rem);
+    opacity: 0.95;
+  }
+
+  .tap-hint.miss-next {
+    color: var(--accent);
+  }
+
+
 </style>
 </head>
 <body>
@@ -1050,6 +1106,11 @@
         <div class="reg-prompt-eyebrow">Registration</div>
         <div class="reg-prompt-mark" id="regMark">—</div>
         <p class="reg-prompt-q">Which country is this aircraft registered in?</p>
+        <div class="reg-reveal" id="regReveal" aria-live="polite">
+          <div class="reg-reveal-status" id="regRevealStatus"></div>
+          <div class="reg-reveal-country" id="regRevealCountry"></div>
+          <div class="reg-reveal-note" id="regRevealNote"></div>
+        </div>
       </div>
       <div class="photo-overlay">
         <div class="loading-spinner" aria-hidden="true"></div>
@@ -2147,6 +2208,10 @@
   const modeTailBtn = document.getElementById("modeTailBtn");
   const regPrompt = document.getElementById("regPrompt");
   const regMark = document.getElementById("regMark");
+  const regReveal = document.getElementById("regReveal");
+  const regRevealStatus = document.getElementById("regRevealStatus");
+  const regRevealCountry = document.getElementById("regRevealCountry");
+  const regRevealNote = document.getElementById("regRevealNote");
   const headerTitle = document.querySelector(".header h1");
   const hdrSub = document.querySelector(".hdr-sub");
 
@@ -2650,6 +2715,7 @@
   function applyTailRound(data) {
     current = data;
     selectedLabel = null;
+    pendingEndStreak = null;
 
     showLoading();
     stage.classList.add("tail-mode");
@@ -2658,7 +2724,10 @@
     photo.removeAttribute("src");
 
     if (regMark) regMark.textContent = data.registration;
-    if (regPrompt) regPrompt.setAttribute("aria-hidden", "false");
+    if (regPrompt) {
+      clearRegReveal();
+      regPrompt.setAttribute("aria-hidden", "false");
+    }
 
     factEl.textContent = data.registry.note || (data.registry.prefix + " = " + data.registry.country);
     hintText.textContent = "";
@@ -2683,6 +2752,7 @@
     if (stage.classList.contains("loading") || stage.classList.contains("error")) return;
     revealed = true;
     selectedLabel = selected.country;
+    pendingEndStreak = null;
     setAdvanceUi(false);
 
     const correctId = current.registry.id;
@@ -2704,28 +2774,25 @@
 
     stage.classList.add("revealed");
     afterReveal.classList.add("visible");
-    // Prefix note already in factEl
-    factEl.textContent = current.registry.note ||
+    const note = current.registry.note ||
       (current.registry.prefix + " = " + current.registry.country);
+    factEl.textContent = note;
+    // Big teach moment on the stage: full country name + prefix note
+    showTailCountryReveal(isCorrect);
 
     answered++;
     if (isCorrect) {
       called++;
       streak++;
       updateScore();
-      requestAnimationFrame(function () {
-        setTimeout(function () {
-          if (revealed && !runEnded && !advancing) setAdvanceUi(true);
-        }, 100);
-      });
+      enableContinueAfterAnswer(false);
     } else {
       const finalStreak = streak;
       streak = 0;
       updateScore();
-      setAdvanceUi(false);
-      setTimeout(function () {
-        endRun(finalStreak);
-      }, 400);
+      // Stay on teach reveal — leaderboard only after second tap
+      pendingEndStreak = finalStreak;
+      enableContinueAfterAnswer(true);
     }
   }
 
@@ -2934,26 +3001,89 @@
     advancing = false;
     runEnded = false;
     canAdvance = false;
+    pendingEndStreak = null;
     loadGen++;
     usedFileTitles = new Set();
     current = null;
     nextReady = null;
     preloadPromise = null;
     lastLbEntryId = null;
+    clearRegReveal();
     setAdvanceUi(false);
     updateScore();
   }
 
-  function setAdvanceUi(on) {
+  function clearRegReveal() {
+    if (regPrompt) {
+      regPrompt.classList.remove("is-answered", "answer-ok", "answer-miss");
+    }
+    if (regRevealStatus) {
+      regRevealStatus.textContent = "";
+      regRevealStatus.classList.remove("ok", "miss");
+    }
+    if (regRevealCountry) regRevealCountry.textContent = "";
+    if (regRevealNote) regRevealNote.textContent = "";
+  }
+
+  function showTailCountryReveal(isCorrect) {
+    if (!regPrompt || !current || !current.registry) return;
+    const country = current.registry.country || "";
+    const note = current.registry.note ||
+      ((current.registry.prefix || "") + " = " + country);
+    regPrompt.classList.add("is-answered");
+    regPrompt.classList.toggle("answer-ok", !!isCorrect);
+    regPrompt.classList.toggle("answer-miss", !isCorrect);
+    if (regRevealStatus) {
+      regRevealStatus.textContent = isCorrect ? "Correct" : "Correct country";
+      regRevealStatus.classList.toggle("ok", !!isCorrect);
+      regRevealStatus.classList.toggle("miss", !isCorrect);
+    }
+    if (regRevealCountry) regRevealCountry.textContent = country;
+    if (regRevealNote) regRevealNote.textContent = note;
+  }
+
+  function setAdvanceUi(on, opts) {
     canAdvance = !!on;
+    const forMiss = !!(opts && opts.forMiss);
     if (tapHint) {
-      if (on) tapHint.classList.add("visible");
-      else tapHint.classList.remove("visible");
+      if (on) {
+        tapHint.classList.add("visible");
+        tapHint.classList.toggle("miss-next", forMiss);
+        tapHint.textContent = forMiss
+          ? "Tap anywhere for standings"
+          : "Tap anywhere to continue";
+      } else {
+        tapHint.classList.remove("visible", "miss-next");
+        tapHint.textContent = "Tap anywhere to continue";
+      }
     }
     if (mainEl) {
       if (on) mainEl.classList.add("can-advance");
       else mainEl.classList.remove("can-advance");
     }
+  }
+
+  function enableContinueAfterAnswer(forMiss) {
+    requestAnimationFrame(function () {
+      setTimeout(function () {
+        if (!revealed || runEnded || advancing) return;
+        setAdvanceUi(true, { forMiss: !!forMiss });
+      }, 100);
+    });
+  }
+
+  function handleContinueTap() {
+    if (!canAdvance || !revealed || runEnded || advancing) return;
+    if (!lbScreen.classList.contains("hidden")) return;
+    if (!startScreen.classList.contains("hidden")) return;
+    if (pendingEndStreak !== null) {
+      const finalStreak = pendingEndStreak;
+      pendingEndStreak = null;
+      setAdvanceUi(false);
+      endRun(finalStreak);
+      return;
+    }
+    advance();
   }
 
   function showNameScreen() {
@@ -3021,7 +3151,11 @@
     subEl.textContent = "";
     photo.alt = "Business aircraft";
     if (regMark) regMark.textContent = "—";
-    if (regPrompt) regPrompt.setAttribute("aria-hidden", "true");
+    if (regPrompt) {
+      regPrompt.setAttribute("aria-hidden", "true");
+      clearRegReveal();
+    }
+    pendingEndStreak = null;
     setAdvanceUi(false);
   }
 
@@ -3154,6 +3288,7 @@
     }
     revealed = true;
     selectedLabel = labelFor(selected);
+    pendingEndStreak = null;
     setAdvanceUi(false);
 
     const correctKey = typeKey(current.type);
@@ -3189,21 +3324,14 @@
       called++;
       streak++;
       updateScore();
-      // Enable tap-to-continue after this click finishes (avoid bubble/double-tap)
-      requestAnimationFrame(function () {
-        setTimeout(function () {
-          if (revealed && !runEnded && !advancing) setAdvanceUi(true);
-        }, 100);
-      });
+      enableContinueAfterAnswer(false);
     } else {
       const finalStreak = streak; // streak before the miss
       streak = 0;
       updateScore();
-      setAdvanceUi(false);
-      // Brief beat so player sees the wrong highlight, then leaderboard
-      setTimeout(function () {
-        endRun(finalStreak);
-      }, 400);
+      // Stay on reveal to learn the type — standings on second tap
+      pendingEndStreak = finalStreak;
+      enableContinueAfterAnswer(true);
     }
   }
 
@@ -3246,33 +3374,39 @@
   }
 
   function onTapAdvance(e) {
-    if (!canAdvance || !revealed || runEnded || advancing) return;
-    // Leaderboard / start overlays own the screen — never dismiss via body tap
-    if (!lbScreen.classList.contains("hidden")) return;
-    if (!startScreen.classList.contains("hidden")) return;
     // Don't steal interactive controls (options already disabled; still protect links/retry)
     const t = e.target;
     if (t.closest && t.closest("a, button, input, .choice-btn, .lb-card, .start-card")) return;
-    advance();
+    handleContinueTap();
   }
 
-  // Choice clicks: stop bubbling so answer click never triggers advance
-  choicesEl.addEventListener("pointerup", function (e) { e.stopPropagation(); });
-  choicesEl.addEventListener("click", function (e) { e.stopPropagation(); });
+  // Choice clicks: stop bubbling while answering; after reveal, a second tap continues
+  choicesEl.addEventListener("pointerup", function (e) {
+    if (revealed && canAdvance) {
+      e.stopPropagation();
+      handleContinueTap();
+      return;
+    }
+    e.stopPropagation();
+  });
+  choicesEl.addEventListener("click", function (e) {
+    if (revealed && canAdvance) return;
+    e.stopPropagation();
+  });
 
   hintBtn.addEventListener("click", function (e) {
     e.stopPropagation();
     showHint();
   });
 
-  // Tap / click anywhere on the game shell after a correct reveal advances
+  // Tap / click anywhere after reveal: next round (correct) or standings (miss)
   gameShell.addEventListener("pointerup", onTapAdvance);
-  // Keyboard: Space / Enter also advance when allowed
+  // Keyboard: Space / Enter also continue when allowed
   document.addEventListener("keydown", function (e) {
     if (!canAdvance) return;
     if (e.key === " " || e.key === "Enter") {
       e.preventDefault();
-      advance();
+      handleContinueTap();
     }
   });
 
