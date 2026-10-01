@@ -22,3 +22,9 @@ Drop exteriors into `images/user/` (or a new folder), then point the type’s `i
 ## Accuracy notes (2026-09)
 
 User photos were re-audited against FAA / Flightradar24 registrations. Global family files in particular were reassigned (several former “Global 6000” shots were Global 7500 / 6500; former “Global 7500” N5X shots are Global 5500).
+
+## Tail / country mode
+
+- `images/tails/` — zoomed empennage / registration crops (Commons + player photos; see `tails/manifest.json`)
+- `data/fleet-regs.json` — compact country weights + sample regs derived from private fleet CSVs (registrations only; no operators/owners)
+- US N-numbers are rare (~8% of Tail rounds); international photo-backed marks preferred

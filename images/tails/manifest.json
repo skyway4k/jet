@@ -1,0 +1,152 @@
+[
+  {
+    "id": "AE",
+    "reg": "A6-VAS",
+    "file": "images/tails/ae-a6-vas.jpg",
+    "credit": "Wikimedia Commons"
+  },
+  {
+    "id": "AU",
+    "reg": "VH-MBP",
+    "file": "images/tails/au-vh-mbp.jpg",
+    "credit": "Wikimedia Commons"
+  },
+  {
+    "id": "AW",
+    "reg": "P4-ADD",
+    "file": "images/tails/aw-p4-add.jpg",
+    "credit": "Wikimedia Commons"
+  },
+  {
+    "id": "BM",
+    "reg": "VP-BCT",
+    "file": "images/tails/bm-vp-bct.jpg",
+    "credit": "Wikimedia Commons"
+  },
+  {
+    "id": "BR",
+    "reg": "PR-JEC",
+    "file": "images/tails/br-pr-jec.jpg",
+    "credit": "Wikimedia Commons"
+  },
+  {
+    "id": "CA",
+    "reg": "C-GHSW",
+    "file": "images/tails/ca-c-ghsw.jpg",
+    "credit": "Wikimedia Commons"
+  },
+  {
+    "id": "CH",
+    "reg": "HB-JRJ",
+    "file": "images/tails/ch-hb-jrj.jpg",
+    "credit": "Wikimedia Commons"
+  },
+  {
+    "id": "DE",
+    "reg": "D-CCCB",
+    "file": "images/tails/de-d-cccb.jpg",
+    "credit": "Wikimedia Commons"
+  },
+  {
+    "id": "ES",
+    "reg": "EC-KKD",
+    "file": "images/tails/es-ec-kkd.jpg",
+    "credit": "Wikimedia Commons"
+  },
+  {
+    "id": "FR",
+    "reg": "F-WSIX",
+    "file": "images/tails/fr-f-wsix.jpg",
+    "credit": "Wikimedia Commons"
+  },
+  {
+    "id": "GB",
+    "reg": "G-SUEJ",
+    "file": "images/tails/gb-g-suej.jpg",
+    "credit": "Wikimedia Commons"
+  },
+  {
+    "id": "IM",
+    "reg": "M-CARA",
+    "file": "images/tails/im-m-cara.jpg",
+    "credit": "Wikimedia Commons"
+  },
+  {
+    "id": "LU",
+    "reg": "LX-GRS",
+    "file": "images/tails/lu-lx-grs.jpg",
+    "credit": "Wikimedia Commons"
+  },
+  {
+    "id": "MT",
+    "reg": "9H-MAX",
+    "file": "images/tails/mt-9h-max.jpg",
+    "credit": "Player photo"
+  },
+  {
+    "id": "MT",
+    "reg": "9H-MAS",
+    "file": "images/tails/mt-9h-mas.jpg",
+    "credit": "Wikimedia Commons"
+  },
+  {
+    "id": "MX",
+    "reg": "XA-ODI",
+    "file": "images/tails/mx-xa-odi.jpg",
+    "credit": "Wikimedia Commons"
+  },
+  {
+    "id": "PT",
+    "reg": "CS-DKE",
+    "file": "images/tails/pt-cs-dke.jpg",
+    "credit": "Wikimedia Commons"
+  },
+  {
+    "id": "SM",
+    "reg": "T7-TAF",
+    "file": "images/tails/sm-t7-taf.jpg",
+    "credit": "Player photo"
+  },
+  {
+    "id": "SM",
+    "reg": "T7-KLCP",
+    "file": "images/tails/sm-t7-klcpm.jpg",
+    "credit": "Wikimedia Commons"
+  },
+  {
+    "id": "US",
+    "reg": "N821WH",
+    "file": "images/tails/us-n821wh.jpg",
+    "credit": "Player photo"
+  },
+  {
+    "id": "US",
+    "reg": "N650NB",
+    "file": "images/tails/us-n650nb.jpg",
+    "credit": "Player photo"
+  },
+  {
+    "id": "US",
+    "reg": "N7707X",
+    "file": "images/tails/us-n7707x.jpg",
+    "credit": "Player photo"
+  },
+  {
+    "id": "US",
+    "reg": "N727PR",
+    "file": "images/tails/us-n727pr.jpg",
+    "credit": "Player photo"
+  },
+  {
+    "id": "US",
+    "reg": "N1PG",
+    "file": "images/tails/us-n1pg.jpg",
+    "credit": "Player photo"
+  },
+  {
+    "id": "US",
+    "reg": "N901SG",
+    "file": "images/tails/us-n901sg.jpg",
+    "credit": "Player photo"
+  }
+]

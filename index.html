@@ -7,6 +7,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>Name That Private Jet</title>
+<meta name="jet-build" content="tail-photos-2026-10-01">
 <meta name="description" content="Name that private jet — and helicopter — from ramp photos.">
 <style>
   :root {
@@ -930,7 +931,7 @@
     outline-offset: 2px;
   }
 
-  /* Tail / country mode: big registration prompt (16:9) */
+  /* Tail / country mode: real tail photo + registration overlay */
   .reg-prompt {
     display: none;
     position: absolute;
@@ -938,23 +939,44 @@
     z-index: 2;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
-    gap: 10px;
-    padding: 24px 20px;
-    background:
-      radial-gradient(ellipse at 50% 40%, rgba(61,158,255,0.18), transparent 55%),
-      linear-gradient(160deg, #0c1a30 0%, #071018 100%);
+    justify-content: flex-end;
+    gap: 8px;
+    padding: 18px 16px calc(16px + var(--safe-bottom));
+    background: linear-gradient(
+      to top,
+      rgba(7, 16, 24, 0.94) 0%,
+      rgba(7, 16, 24, 0.72) 42%,
+      rgba(7, 16, 24, 0.18) 72%,
+      transparent 100%
+    );
     text-align: center;
+    pointer-events: none;
   }
 
   .photo-stage.tail-mode:not(.error) .reg-prompt { display: flex; }
   .photo-stage.tail-mode.error .reg-prompt { display: none; }
-  .photo-stage.tail-mode img,
   .photo-stage.tail-mode .placard { display: none !important; }
   .photo-stage.tail-mode:not(.error) .photo-overlay { display: none !important; }
 
   .photo-stage.tail-mode {
     background: #071018;
+  }
+
+  .photo-stage.tail-mode img {
+    display: block !important;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+  }
+
+  /* No photo yet: fall back to solid text stage */
+  .photo-stage.tail-mode.no-tail-photo img { display: none !important; }
+  .photo-stage.tail-mode.no-tail-photo .reg-prompt {
+    justify-content: center;
+    background:
+      radial-gradient(ellipse at 50% 40%, rgba(61,158,255,0.18), transparent 55%),
+      linear-gradient(160deg, #0c1a30 0%, #071018 100%);
   }
 
   .reg-prompt-eyebrow {
@@ -1805,12 +1827,44 @@
 
   const LS_BOARD_TAIL = "nameThatJetTailLeaderboard";
   const LS_MODE = "nameThatJetGameMode";
-  const US_SHARE_CAP = 0.30; // hard cap on N-number draws
+  const US_SHARE_CAP = 0.08; // rare N-numbers — player is US-based, so N- is too easy
+
+  const TAIL_PHOTOS = [
+    { id: "AE", reg: "A6-VAS", file: "images/tails/ae-a6-vas.jpg", credit: "Wikimedia Commons" },
+    { id: "AU", reg: "VH-MBP", file: "images/tails/au-vh-mbp.jpg", credit: "Wikimedia Commons" },
+    { id: "AW", reg: "P4-ADD", file: "images/tails/aw-p4-add.jpg", credit: "Wikimedia Commons" },
+    { id: "BM", reg: "VP-BCT", file: "images/tails/bm-vp-bct.jpg", credit: "Wikimedia Commons" },
+    { id: "BR", reg: "PR-JEC", file: "images/tails/br-pr-jec.jpg", credit: "Wikimedia Commons" },
+    { id: "CA", reg: "C-GHSW", file: "images/tails/ca-c-ghsw.jpg", credit: "Wikimedia Commons" },
+    { id: "CH", reg: "HB-JRJ", file: "images/tails/ch-hb-jrj.jpg", credit: "Wikimedia Commons" },
+    { id: "DE", reg: "D-CCCB", file: "images/tails/de-d-cccb.jpg", credit: "Wikimedia Commons" },
+    { id: "ES", reg: "EC-KKD", file: "images/tails/es-ec-kkd.jpg", credit: "Wikimedia Commons" },
+    { id: "FR", reg: "F-WSIX", file: "images/tails/fr-f-wsix.jpg", credit: "Wikimedia Commons" },
+    { id: "GB", reg: "G-SUEJ", file: "images/tails/gb-g-suej.jpg", credit: "Wikimedia Commons" },
+    { id: "IM", reg: "M-CARA", file: "images/tails/im-m-cara.jpg", credit: "Wikimedia Commons" },
+    { id: "LU", reg: "LX-GRS", file: "images/tails/lu-lx-grs.jpg", credit: "Wikimedia Commons" },
+    { id: "MT", reg: "9H-MAX", file: "images/tails/mt-9h-max.jpg", credit: "Player photo" },
+    { id: "MT", reg: "9H-MAS", file: "images/tails/mt-9h-mas.jpg", credit: "Wikimedia Commons" },
+    { id: "MX", reg: "XA-ODI", file: "images/tails/mx-xa-odi.jpg", credit: "Wikimedia Commons" },
+    { id: "PT", reg: "CS-DKE", file: "images/tails/pt-cs-dke.jpg", credit: "Wikimedia Commons" },
+    { id: "SM", reg: "T7-TAF", file: "images/tails/sm-t7-taf.jpg", credit: "Player photo" },
+    { id: "SM", reg: "T7-KLCP", file: "images/tails/sm-t7-klcpm.jpg", credit: "Wikimedia Commons" },
+    { id: "US", reg: "N821WH", file: "images/tails/us-n821wh.jpg", credit: "Player photo" },
+    { id: "US", reg: "N650NB", file: "images/tails/us-n650nb.jpg", credit: "Player photo" },
+    { id: "US", reg: "N7707X", file: "images/tails/us-n7707x.jpg", credit: "Player photo" },
+    { id: "US", reg: "N727PR", file: "images/tails/us-n727pr.jpg", credit: "Player photo" },
+    { id: "US", reg: "N1PG", file: "images/tails/us-n1pg.jpg", credit: "Player photo" },
+    { id: "US", reg: "N901SG", file: "images/tails/us-n901sg.jpg", credit: "Player photo" },
+  ];
+  const TAIL_PHOTO_IDS = {};
+  TAIL_PHOTOS.forEach(function (p) { TAIL_PHOTO_IDS[p.id] = true; });
+
+  const FLEET_REG_DATA = {"weights":{"MT":45,"CA":61,"SM":48,"AT":47,"IT":38,"US":79,"KY":45,"RU":38,"IN":39,"BR":56,"DE":49,"TR":41,"MX":47,"NO":27,"IM":50,"CN":43,"SE":32,"ZA":41,"QA":30,"GB":46,"DK":37,"ES":39,"PT":43,"IE":29,"FR":53,"CH":51,"FI":36,"LU":42,"AU":44,"AW":36,"CZ":36,"SA":32,"AE":33,"PL":33,"BM":41,"NL":36,"GG":30,"IL":25,"BE":35,"HK":29,"KR":23,"JP":28,"NZ":23},"regs":{"MT":["9H-AJA","9H-AJT","9H-AJU","9H-AJZ","9H-AKV","9H-ANS","9H-BGL","9H-CMA","9H-FCA","9H-JSY","9H-LKF","9H-LOJ","9H-LOV","9H-MAS","9H-MAX","9H-MBA","9H-MOX","9H-MPA","9H-MRT","9H-OJO"],"CA":["C-FIOC","C-FIOJ","C-FJQT","C-FJRE","C-FLDD","C-FLDX","C-FLQP","C-FMWG","C-FMYA","C-FOBJ","C-FOQR","C-FOQW","C-FOSQ","C-FOUQ","C-FOWQ","C-FOWU","C-FPAG","C-FPAI","C-FQOF","C-FQOL"],"SM":["T7-828","T7-AAA","T7-AAA7","T7-AAB","T7-ALN","T7-AVIR","T7-BIG","T7-BJK","T7-BRS","T7-CAM","T7-CHS","T7-CLG","T7-DAL","T7-DFC","T7-ELL","T7-LANA","T7-LJS","T7-MDVR","T7-MEL","T7-MLK"],"AT":["OE-HAB","OE-HCL","OE-HCU","OE-HDD","OE-HHH","OE-HLL","OE-HNL","OE-HPK","OE-HPZ","OE-HRR","OE-HZP","OE-IBC","OE-ICA","OE-IEO","OE-IGS","OE-ILS","OE-IMA","OE-IPA","OE-LCA","OE-LCJ"],"IT":["I-ADVH","I-AMMA","I-ARIF","I-BNTN","I-CCCH","I-DBRR","I-DDVF","I-FLYP","I-FLYV","I-FORZ","I-GEFD","I-GOAR","I-JAMJ","I-JAMY","I-JETF","I-JETX","I-KERE","I-KETO","I-MOVE","I-NATS"],"US":["N1013","N131JR","N147AG","N15GT","N173DB","N269MJ"],"KY":["VP-CAF","VP-CAG","VP-CAK","VP-CAO","VP-CAU","VP-CAX","VP-CBA","VP-CDB","VP-CDV","VP-CFM","VP-CGS","VP-CHJ","VP-CKM","VP-CLT","VP-CLV","VP-CMA","VP-CMV","VP-CNY","VP-COP","VP-CPF"],"RU":["RA-67130","RA-67131","RA-67132","RA-67136","RA-67137","RA-67160","RA-67161","RA-67165","RA-67217","RA-67221","RA-67223","RA-67224","RA-67225","RA-67226","RA-67241","RA-67243","RA-67246","RA-67250","RA-67700","RA-67777"],"IN":["VT-AGL","VT-APF","VT-BAJ","VT-DBA","VT-DHA","VT-DIA","VT-IBG","VT-JSE","VT-JSJ","VT-JSK","VT-JST","VT-JSX","VT-JUA","VT-JUI","VT-KJB","VT-MAY","VT-NAD","VT-PIL","VT-PRI","VT-RAK"],"BR":["PP-BFB","PP-BIC","PP-BIR","PP-FCC","PP-GUL","PP-LHG","PP-MQS","PP-NOC","PR-ADB","PR-BPT","PR-BSN","PR-DYB","PR-FIS","PR-FMW","PR-HIC","PR-HNG","PR-IDB","PR-OOF","PR-RBZ","PR-SIR"],"DE":["D-ACCC","D-ACCF","D-AGLO","D-AGMF","D-AHGN","D-APLC","D-ARCO","D-ARKO","D-AXTM","D-BADO","D-BANN","D-BAVA","D-BAVB","D-BCLA","D-BEAM","D-BEKP","D-BELO","D-BETA","D-BFJE","D-BFLY"],"TR":["TC-ACN","TC-AFF","TC-ARB","TC-ARC","TC-ARK","TC-CBA","TC-CHN","TC-CMK","TC-DDD","TC-EAR","TC-EGG","TC-FRK","TC-GLB","TC-GNG","TC-ISR","TC-KAR","TC-KRM","TC-LMT","TC-MAK","TC-MJA"],"MX":["XA-ARO","XA-BOM","XA-BUA","XA-BZN","XA-CHC","XA-COG","XA-DLA","XA-EZI","XA-FRD","XA-GAN","XA-GPR","XA-GRB","XA-JCP","XA-JGT","XA-LAM","XA-LLA","XA-LVS","XA-LYA","XA-NTG","XA-OVA"],"NO":["LN-AAA","LN-AGE","LN-AGR","LN-AIR","LN-AKR","LN-AOC","LN-BOG","LN-BRG","LN-EUJ","LN-FOX","LN-HLM","LN-HST","LN-JHH","LN-MDT","LN-NSM","LN-PIL","LN-RRR","LN-RTG","LN-RTN","LN-RTO"],"IM":["M-AAHA","M-ABFQ","M-ABFR","M-ABSU","M-ABTE","M-AFMA","M-AGMF","M-AHAA","M-AHAH","M-ARVA","M-ASBA","M-AVIR","M-BLUE","M-BLUL","M-EDOK","M-FINE","M-HAWK","M-IGWT","M-LIFE","M-MAVP"],"CN":["B-11098","B-3246","B-3389","B-68888","B-7699","B-7765","B-8101","B-8105","B-8106","B-8115","B-8116","B-8190","B-8191","B-8192","B-8193","B-8195","B-8196","B-8197","B-8199","B-8233"],"SE":["SE-DJC","SE-DJK","SE-DJL","SE-DRO","SE-DRP","SE-DVG","SE-DVK","SE-DVL","SE-RAY","SE-RFH","SE-RFI","SE-RFJ","SE-RFK","SE-RFL","SE-RGB","SE-RIC","SE-RMA","SE-RMC","SE-RMK","SE-RMM"],"ZA":["ZS-ACT","ZS-AKF","ZS-AKG","ZS-AMP","ZS-BLA","ZS-CKA","ZS-CLO","ZS-DAZ","ZS-DIP","ZS-DLJ","ZS-DRS","ZS-EKA","ZS-ESA","ZS-GJB","ZS-IDC","ZS-JDL","ZS-JPO","ZS-KDR","ZS-KFS","ZS-MRH"],"QA":["A7-AAD","A7-AAE","A7-AAM","A7-AAN","A7-CEC","A7-CED","A7-CEE","A7-CEF","A7-CEI","A7-CEV","A7-CGA","A7-CGB","A7-CGC","A7-CGD","A7-CGE","A7-CGG","A7-CGH","A7-CGI","A7-CGJ","A7-CGL"],"GB":["G-CGFA","G-CJOF","G-EMLG","G-FAMG","G-FOMO","G-GRAN","G-IDRO","G-KALS","G-KBMM","G-KSFR","G-LAKA","G-LEAZ","G-LMHA","G-MEGP","G-MIAP","G-MRAP","G-OCSA","G-OJTR","G-OMTX","G-OOEG"],"DK":["OY-CHL","OY-CKF","OY-CKI","OY-CKN","OY-CKW","OY-CVS","OY-EKS","OY-FIT","OY-GCE","OY-GLA","OY-GMF","OY-GVG","OY-GVI","OY-ICE","OY-ILG","OY-LGI","OY-LKS","OY-LNA","OY-LUK","OY-MSI"],"ES":["EC-LJR","EC-LJS","EC-LJT","EC-LJX","EC-LKF","EC-LOJ","EC-LOV","EC-LOX","EC-LPG","EC-LPN","EC-LTF","EC-MJO","EC-MJP","EC-MJQ","EC-MLC","EC-MLN","EC-MNQ","EC-MNR","EC-MOX","EC-MPA"],"PT":["CS-CBA","CS-CHA","CS-CHB","CS-CHC","CS-CHD","CS-CHE","CS-CHF","CS-CHG","CS-CHH","CS-CHI","CS-CHJ","CS-CHK","CS-CHL","CS-CHM","CS-CHN","CS-CHO","CS-CHP","CS-CHQ","CS-EAM","CS-ESS"],"IE":["EI-CAH","EI-CVT","EI-EGO","EI-EHN","EI-EHO","EI-EHS","EI-EHT","EI-GCK","EI-GDL","EI-HBA","EI-HBB","EI-HBC","EI-HIA","EI-HIB","EI-HIC","EI-HID","EI-HIE","EI-IIN","EI-ITN","EI-JBA"],"FR":["F-GBOL","F-GVMA","F-GVMI","F-GVML","F-GVMV","F-HAKP","F-HFBY","F-HFHP","F-HFIP","F-HGBT","F-HMBY","F-HMLA","F-HMLC","F-HMLD","F-HMLE","F-HMLF","F-HMLG","F-HMLH","F-HMLI","F-HMLJ"],"CH":["HB-IGS","HB-INJ","HB-JBA","HB-JBB","HB-JBC","HB-JBD","HB-JBE","HB-JBF","HB-JBG","HB-JBH","HB-JEC","HB-JEU","HB-JFB","HB-JFE","HB-JFM","HB-JFO","HB-JFX","HB-JGF","HB-JGN","HB-JGQ"],"FI":["OH-ADM","OH-CXO","OH-DDI","OH-EPA","OH-EPB","OH-FEX","OH-FFC","OH-FFD","OH-FFE","OH-FFF","OH-FFI","OH-FIX","OH-FLM","OH-FOX","OH-MAL","OH-MPL","OH-PPI","OH-PPJ","OH-PPR","OH-PPS"],"LU":["LX-AAA","LX-ABB","LX-ABC","LX-ABM","LX-ALX","LX-AMG","LX-ARY","LX-AVT","LX-FLY","LX-GEX","LX-GJM","LX-GLX","LX-IXI","LX-JAP","LX-JET","LX-JNC","LX-LCZ","LX-LUX","LX-MLO","LX-NAD"],"AU":["VH-CCV","VH-CCX","VH-DNK","VH-FFI","VH-FGJ","VH-FMG","VH-IEJ","VH-IQR","VH-KTG","VH-LBU","VH-LEF","VH-LEP","VH-LON","VH-LUN","VH-LZP","VH-OFX","VH-RIS","VH-SPJ","VH-TGG","VH-TGQ"],"AW":["P4-AAA","P4-ABD","P4-AGL","P4-AMR","P4-AND","P4-AVA","P4-BFH","P4-BFK","P4-BFW","P4-BVM","P4-CBA","P4-CPR","P4-ELI","P4-GMS","P4-HBK","P4-HER","P4-HMB","P4-LJG","P4-MAA","P4-MLC"],"CZ":["OK-ALP","OK-AML","OK-ANN","OK-AOA","OK-ELD","OK-EMA","OK-FLN","OK-FRE","OK-GRX","OK-JRE","OK-JRL","OK-JRS","OK-JRT","OK-JUR","OK-NEO","OK-OSK","OK-PET","OK-PHA","OK-PHE","OK-PHM"],"SA":["HZ-103","HZ-35A","HZ-35B","HZ-A25","HZ-A26","HZ-A7","HZ-AB2","HZ-ADC","HZ-AFA","HZ-AFT","HZ-AFU","HZ-AFV","HZ-AFW","HZ-AFX","HZ-AFY","HZ-AFZ","HZ-AKI","HZ-AO3","HZ-ATH","HZ-ATS"],"AE":["A6-ACE","A6-AFC","A6-AFD","A6-AFE","A6-ALT","A6-AMS","A6-AUH","A6-BBD","A6-CAG","A6-CBO","A6-CPC","A6-DHG","A6-EFI","A6-EJB","A6-FBQ","A6-GJA","A6-KNH","A6-MAF","A6-MAH","A6-MBS"],"PL":["SP-AGA","SP-ARG","SP-ARK","SP-AVP","SP-CON","SP-CUD","SP-EAR","SP-EFF","SP-EMJ","SP-GMS","SP-IAF","SP-IRT","SP-IZI","SP-KHI","SP-MBW","SP-MSG","SP-NEW","SP-OMI","SP-OSA","SP-RAP"],"BM":["VP-BAA","VP-BAM","VP-BAT","VP-BBK","VP-BCY","VP-BDD","VP-BDU","VP-BEB","VP-BEK","VP-BEM","VP-BEN","VP-BGG","VP-BGS","VP-BHM","VP-BJJ","VP-BJN","VP-BJT","VP-BLU","VP-BMG","VP-BOK"],"NL":["PH-BEJ","PH-CBV","PH-CFR","PH-CGV","PH-CHT","PH-CIJ","PH-CJM","PH-CTH","PH-CTR","PH-HGT","PH-ILD","PH-ILR","PH-INJ","PH-JNL","PH-JTJ","PH-JWL","PH-LEM","PH-LSV","PH-MDG","PH-NNX"],"GG":["2-ALPS","2-ANVL","2-AUER","2-BANK","2-EMBR","2-HIPP","2-HONE","2-IBBF","2-JBMF","2-JFJC","2-JRSY","2-KSFR","2-LIVE","2-LIVI","2-MACH","2-MATO","2-NGGK","2-NORN","2-NYAW","2-OOOX"],"IL":["4X-CMN","4X-CNL","4X-COF","4X-COH","4X-COI","4X-CPV","4X-CPX","4X-CVE","4X-CVF","4X-CVG","4X-CVH","4X-CVI","4X-CVJ","4X-CVK","4X-CVP","4X-CXP","4X-IGB","4X-IGO","4X-WBJ","4X-WSJ"],"BE":["OO-AAA","OO-ALX","OO-DFG","OO-EJA","OO-FAE","OO-FDG","OO-GFD","OO-GHE","OO-GLM","OO-GML","OO-GSP","OO-IAR","OO-IDY","OO-KIN","OO-LAH","OO-LFT","OO-LMG","OO-LMP","OO-LUM","OO-MCW"],"HK":["B-HMA","B-HVP","B-HWA","B-HWB","B-KCK","B-KDP","B-KEZ","B-KGP","B-KGV","B-KHK","B-KID","B-KMF","B-KMJ","B-KTL","B-KTS","B-KVC","B-LAS","B-LCK","B-LIM","B-LIS"],"KR":["HL7222","HL7301","HL7386","HL7576","HL7748","HL7749","HL7779","HL7799","HL8068","HL8200","HL8229","HL8230","HL8238","HL8288","HL8299","HL8550","HL8745"],"JP":["JA001G","JA002G","JA005G","JA006G","JA04AA","JA16AC","JA45YD","JA500A","JA501A","JA502A","JA50TH","JA55TH","JA572A","JA573A","JA574A","JA575A","JA576A","JA577A","JA600A","JA680A"],"NZ":["ZK-JFL","ZK-JTH","ZK-KFB","ZK-OCB","ZK-PHN","ZK-PLB","ZK-PLS","ZK-PLT","ZK-PLV","ZK-PLX","ZK-PLZ","ZK-RGB","ZK-RXD","ZK-TFL","ZK-TIL","ZK-ZEK"]}};
 
   /**
    * Civil/bizjet-relevant national marks.
    * weight ≈ relative private/bizjet fleet size (rough ordinal).
-   * US is listed with a high raw weight but sampled under US_SHARE_CAP.
+   * US is listed with a high raw weight but sampled under a low US_SHARE_CAP (~8%).
    * similar: distractor country ids (plausible mix-ups).
    * region: used to pad distractors from nearby registries.
    */
@@ -2055,12 +2109,44 @@
     return expandRegFormat(fmt);
   }
 
-  /** Sample a registry with US share capped; others by relative weight. */
+  /** Fleet-derived weight for a country id (falls back to REGISTRIES.weight). */
+  function fleetWeight(id) {
+    var fw = FLEET_REG_DATA && FLEET_REG_DATA.weights && FLEET_REG_DATA.weights[id];
+    if (typeof fw === "number" && fw > 0) return fw;
+    var r = REG_BY_ID[id];
+    return (r && r.weight) || 1;
+  }
+
+  /** Sample a registry: rare US (~8%); prefer photo-backed intl marks; fleet weights. */
   function sampleRegistry() {
-    const us = REG_BY_ID.US;
-    const others = REGISTRIES.filter(function (r) { return r.id !== "US"; });
-    if (Math.random() < US_SHARE_CAP) return us;
-    return pickWeighted(others, function (r) { return r.weight; });
+    if (Math.random() < US_SHARE_CAP) return REG_BY_ID.US;
+    var withPhotos = REGISTRIES.filter(function (r) {
+      return r.id !== "US" && TAIL_PHOTO_IDS[r.id];
+    });
+    var others = REGISTRIES.filter(function (r) { return r.id !== "US"; });
+    // Most Tail rounds should show a real zoomed tail photo
+    if (withPhotos.length && Math.random() < 0.88) {
+      return pickWeighted(withPhotos, function (r) { return fleetWeight(r.id); });
+    }
+    return pickWeighted(others, function (r) {
+      var w = fleetWeight(r.id);
+      if (TAIL_PHOTO_IDS[r.id]) w *= 2.5;
+      return w;
+    });
+  }
+
+  function pickTailPhoto(registry) {
+    var matches = TAIL_PHOTOS.filter(function (p) { return p.id === registry.id; });
+    if (!matches.length) return null;
+    return matches[randInt(matches.length)];
+  }
+
+  /** Prefer a real registration from fleet data; else synthetic format. */
+  function pickRegistration(registry, preferredReg) {
+    if (preferredReg) return preferredReg;
+    var pool = FLEET_REG_DATA && FLEET_REG_DATA.regs && FLEET_REG_DATA.regs[registry.id];
+    if (pool && pool.length) return pool[randInt(pool.length)];
+    return generateRegistration(registry);
   }
 
   function countryName(id) {
@@ -2680,12 +2766,18 @@
 
   function prepareTailRound() {
     const registry = sampleRegistry();
-    const registration = generateRegistration(registry);
+    const tailPhoto = pickTailPhoto(registry);
+    // Prefer painted reg on the photo; else a real fleet reg; else synthetic
+    const registration = pickRegistration(
+      registry,
+      tailPhoto && tailPhoto.reg ? tailPhoto.reg : null
+    );
     const options = buildCountryChoices(registry);
     return Promise.resolve({
       mode: "tail",
       registry: registry,
       registration: registration,
+      tailPhoto: tailPhoto,
       options: options,
       // placeholders so jet-path guards don't explode if mis-routed
       type: null,
@@ -2719,9 +2811,8 @@
 
     showLoading();
     stage.classList.add("tail-mode");
-    stage.classList.remove("loading", "error", "revealed");
+    stage.classList.remove("loading", "error", "revealed", "no-tail-photo");
     photo.classList.add("hidden");
-    photo.removeAttribute("src");
 
     if (regMark) regMark.textContent = data.registration;
     if (regPrompt) {
@@ -2732,8 +2823,6 @@
     factEl.textContent = data.registry.note || (data.registry.prefix + " = " + data.registry.country);
     hintText.textContent = "";
     hintBtn.style.display = "none";
-    attrib.innerHTML = "";
-    attrib.classList.remove("visible");
 
     mfrEl.textContent = "";
     nameEl.textContent = data.registry.country;
@@ -2744,7 +2833,44 @@
     advancing = false;
     setAdvanceUi(false);
     updateScore();
-    startPreloadNext();
+
+    var tp = data.tailPhoto;
+    if (tp && tp.file) {
+      photo.alt = "Aircraft tail / registration " + (data.registration || "");
+      var onOk = function () {
+        stage.classList.remove("loading", "error");
+        photo.classList.remove("hidden");
+        if (tp.credit) {
+          attrib.innerHTML = "Photo: " + tp.credit;
+          attrib.classList.add("visible");
+        } else {
+          attrib.innerHTML = "";
+          attrib.classList.remove("visible");
+        }
+        startPreloadNext();
+      };
+      var onErr = function () {
+        // Fall back to text-only stage if the asset fails to load
+        stage.classList.add("no-tail-photo");
+        stage.classList.remove("loading", "error");
+        photo.classList.add("hidden");
+        photo.removeAttribute("src");
+        attrib.innerHTML = "";
+        attrib.classList.remove("visible");
+        startPreloadNext();
+      };
+      photo.onload = onOk;
+      photo.onerror = onErr;
+      photo.src = tp.file;
+      if (photo.complete && photo.naturalWidth) onOk();
+    } else {
+      stage.classList.add("no-tail-photo");
+      stage.classList.remove("loading", "error");
+      photo.removeAttribute("src");
+      attrib.innerHTML = "";
+      attrib.classList.remove("visible");
+      startPreloadNext();
+    }
   }
 
   function onChooseCountry(selected) {
@@ -3162,7 +3288,7 @@
   function showLoading() {
     stage.classList.add("loading");
     stage.classList.remove("error", "revealed");
-    if (!isTailMode()) stage.classList.remove("tail-mode");
+    if (!isTailMode()) stage.classList.remove("tail-mode", "no-tail-photo");
     photo.classList.add("hidden");
     if (isTailMode()) {
       hintBtn.style.display = "none";
@@ -3192,7 +3318,7 @@
     usedFileTitles.add(data.image.title);
 
     showLoading();
-    stage.classList.remove("tail-mode");
+    stage.classList.remove("tail-mode", "no-tail-photo");
     // Keep alt generic until after answer — manufacturer/type would leak
     photo.alt = "Business aircraft";
     photo.src = data.image.url;
