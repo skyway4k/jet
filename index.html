@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>Name That Private Jet</title>
-<meta name="jet-build" content="owner-bonus-2026-10-06">
+<meta name="jet-build" content="owner-llc-photos-2026-10-06">
 <meta name="description" content="Name that private jet — and helicopter — from ramp photos.">
 <style>
   :root {
@@ -1344,6 +1344,19 @@
    */
   const LOCAL_IMAGES = {};
 
+  // Per-file registration/operator from fleet CSV (or notes) for owner bonus
+  const LOCAL_IMAGE_META = {
+    "images/user/global-express-xrs-01.jpg": { registration: "TC-TSS", operator: "Genel Air" },
+    "images/user/global-7500-05.jpg": { registration: "VQ-BDY" },
+    "images/user/gulfstream-g650-03.jpg": { registration: "N709EL" },
+    "images/user/gulfstream-g650er-06.jpg": { registration: "N459BL", operator: "Pivotal Ventures LLC" },
+    "images/user/gulfstream-g650er-07.jpg": { registration: "A7-CHA", operator: "Qatar Executive" },
+    "images/user/gulfstream-g500-01.jpg": { registration: "N7KS", operator: "Starshot Ventures LLC" },
+    "images/user/gulfstream-g550-05.jpg": { registration: "N773MJ", operator: "Silver Stream Aviation LLC" },
+    "images/user/airbus-h145-03.jpg": { registration: "N3BU" }
+  };
+
+
   /** @type {Array<{manufacturer:string, displayName:string, sizeClass:string, hint:string, fact:string, searchQueries:string[]}>} */
   const CATALOG = [
     // --- Gulfstream ---
@@ -1377,13 +1390,14 @@
       family: "gulfstream-g500-600",
       hint: "Clean-sheet Gulfstream with a steeper windshield, larger oval windows, and Symmetry Flight Deck sidesticks.",
       fact: "The G500 introduced Gulfstream's Symmetry Flight Deck and fly-by-wire controls in a large-cabin package shorter than the G600.",
-      searchQueries: ["Gulfstream G500","Gulfstream G500 aircraft"] },
+      searchQueries: ["Gulfstream G500","Gulfstream G500 aircraft"],
+      images: ["images/user/gulfstream-g500-01.jpg"]},
     { manufacturer: "Gulfstream", displayName: "G550", sizeClass: "Large Cabin",
       family: "gulfstream-g450-550",
       hint: "Seven oval windows per side and a classic Gulfstream nose; twin Rolls-Royce engines with no under-wing pylons.",
       fact: "The G550 was a NASA and special-mission favorite as well as a boardroom jet. Over 600 were built before the G500/G600 took over.",
       searchQueries: ["Gulfstream G550","Gulfstream GV-SP"],
-      images: ["images/user/gulfstream-g550-01.jpg","images/user/gulfstream-g550-02.jpg","images/user/gulfstream-g550-03.jpg","images/user/gulfstream-g550-04.jpg"] },
+      images: ["images/user/gulfstream-g550-01.jpg","images/user/gulfstream-g550-02.jpg","images/user/gulfstream-g550-03.jpg","images/user/gulfstream-g550-04.jpg","images/user/gulfstream-g550-05.jpg"] },
     { manufacturer: "Gulfstream", displayName: "G600", sizeClass: "Ultra-Long-Range",
       family: "gulfstream-g500-600",
       hint: "Longer sibling of the G500 with more windows and the same modern Symmetry Flight Deck nose.",
@@ -1395,13 +1409,13 @@
       hint: "Tall oval windows and a long swept wing with large curved winglets — the iconic modern Gulfstream.",
       fact: "The G650 set multiple city-pair speed records and can fly New York–Tokyo nonstop, with a notably low cabin altitude at cruise.",
       searchQueries: ["Gulfstream G650","Gulfstream G650ER"],
-      images: ["images/user/gulfstream-g650-01.jpg","images/user/gulfstream-g650-02.jpg"] },
+      images: ["images/user/gulfstream-g650-01.jpg","images/user/gulfstream-g650-02.jpg","images/user/gulfstream-g650-03.jpg"] },
     { manufacturer: "Gulfstream", displayName: "G650ER", sizeClass: "Ultra-Long-Range",
       family: "gulfstream-g650",
       hint: "Looks nearly identical to a G650 — same tall windows and wing — but is the extended-range tanker-range sibling.",
       fact: "The G650ER adds fuel capacity for about 7,500 nm, enabling ultra-long city pairs that pushed competitors to answer.",
       searchQueries: ["Gulfstream G650ER","Gulfstream G650 ER"],
-      images: ["images/user/gulfstream-g650er-01.jpg","images/user/gulfstream-g650er-02.jpg","images/user/gulfstream-g650er-03.jpg","images/user/gulfstream-g650er-04.jpg","images/user/gulfstream-g650er-05.jpg"] },
+      images: ["images/user/gulfstream-g650er-01.jpg","images/user/gulfstream-g650er-02.jpg","images/user/gulfstream-g650er-03.jpg","images/user/gulfstream-g650er-04.jpg","images/user/gulfstream-g650er-05.jpg","images/user/gulfstream-g650er-06.jpg","images/user/gulfstream-g650er-07.jpg"] },
     { manufacturer: "Gulfstream", displayName: "G700", sizeClass: "Ultra-Long-Range",
       family: "gulfstream-g700-800",
       hint: "Newest ultra-long Gulfstream with an even longer cabin and the latest winglet/nose styling of the G500 family lineage.",
@@ -1459,7 +1473,7 @@
       hint: "Very long fuselage with four living zones visible in the window count, and a distinctive high-aspect-ratio wing.",
       fact: "The Global 7500 was the first purpose-built four-zone ultra-long-range jet and briefly held the world's longest-range title.",
       searchQueries: ["Bombardier Global 7500","Global 7500"],
-      images: ["images/user/global-7500-01.jpg","images/user/global-7500-02.jpg","images/user/global-7500-03.jpg","images/user/global-7500-04.jpg"] },
+      images: ["images/user/global-7500-01.jpg","images/user/global-7500-02.jpg","images/user/global-7500-03.jpg","images/user/global-7500-04.jpg","images/user/global-7500-05.jpg"] },
     { manufacturer: "Bombardier", displayName: "Global 8000", sizeClass: "Ultra-Long-Range",
       family: "global-express",
       hint: "Looks closely related to the 7500 — ultra-long Bombardier with the newest Global wing and cabin stretch cues.",
@@ -1469,7 +1483,8 @@
       family: "global-express",
       hint: "Large Bombardier Global with a rounder nose and fewer windows than a 7500; twin rear engines and a tall T-tail.",
       fact: "The Global Express pioneered the ultra-long-range category in the late 1990s; the XRS added range and cabin upgrades.",
-      searchQueries: ["Bombardier Global Express","Global Express XRS"] },
+      searchQueries: ["Bombardier Global Express","Global Express XRS"],
+      images: ["images/user/global-express-xrs-01.jpg"]},
     { manufacturer: "Bombardier", displayName: "Challenger 300", sizeClass: "Super-Midsize",
       family: "challenger-300-series",
       hint: "Wide Challenger fuselage, early winglets or tip treatments, shorter than a Global — classic 300-series look.",
@@ -1881,7 +1896,7 @@
       hint: "Larger Airbus twin than an H135, often with sliding cabin doors and a Fenestron — roomy EMS/VIP cabin.",
       fact: "The H145 (EC145 / BK117 family) offers a wide cabin and Fenestron, popular for EMS, corporate, and offshore support.",
       searchQueries: ["Airbus H145","Eurocopter EC145","H145 helicopter"],
-      images: ["images/user/airbus-h145-01.jpg","images/user/airbus-h145-02.jpg"] },
+      images: ["images/user/airbus-h145-01.jpg","images/user/airbus-h145-02.jpg","images/user/airbus-h145-03.jpg"] },
     { manufacturer: "Sikorsky", displayName: "S-76", sizeClass: "Helicopter",
       family: "heli-s76",
       category: "helicopter",
@@ -2815,33 +2830,50 @@
   function localEntriesFor(type) {
     const key = typeKey(type);
     const out = [];
-    function pushLocal(url, title, artist, descriptionUrl) {
+    function pushLocal(url, title, artist, descriptionUrl, operator, registration) {
       if (!url) return;
-      out.push({
+      const entry = {
         url: url,
         title: title || (type.displayName + " (player library)"),
         artist: artist || "Photo courtesy of player library",
         descriptionUrl: descriptionUrl || "#"
-      });
+      };
+      if (operator) entry.operator = operator;
+      if (registration) entry.registration = registration;
+      out.push(entry);
     }
-    if (type.localImage) pushLocal(type.localImage);
-    if (Array.isArray(type.localImages)) {
-      type.localImages.forEach(function (item) {
-        if (typeof item === "string") pushLocal(item);
-        else if (item && item.url) pushLocal(item.url, item.title, item.artist, item.descriptionUrl);
-      });
+    function metaFor(url) {
+      try { return (LOCAL_IMAGE_META && LOCAL_IMAGE_META[url]) || null; } catch (_) { return null; }
     }
-    if (Array.isArray(type.images)) {
-      type.images.forEach(function (u) { pushLocal(u); });
+    function pushItem(item) {
+      if (typeof item === "string") {
+        const meta = metaFor(item);
+        pushLocal(
+          item,
+          meta && meta.registration ? meta.registration : null,
+          null,
+          null,
+          meta && meta.operator,
+          meta && meta.registration
+        );
+      } else if (item && item.url) {
+        const meta = metaFor(item.url);
+        pushLocal(
+          item.url,
+          item.title || (meta && meta.registration) || null,
+          item.artist,
+          item.descriptionUrl,
+          item.operator || (meta && meta.operator) || null,
+          item.registration || (meta && meta.registration) || null
+        );
+      }
     }
+    if (type.localImage) pushItem(type.localImage);
+    if (Array.isArray(type.localImages)) type.localImages.forEach(pushItem);
+    if (Array.isArray(type.images)) type.images.forEach(pushItem);
     const pack = LOCAL_IMAGES[key];
-    if (typeof pack === "string") pushLocal(pack);
-    else if (Array.isArray(pack)) {
-      pack.forEach(function (item) {
-        if (typeof item === "string") pushLocal(item);
-        else if (item && item.url) pushLocal(item.url, item.title, item.artist, item.descriptionUrl);
-      });
-    }
+    if (typeof pack === "string") pushItem(pack);
+    else if (Array.isArray(pack)) pack.forEach(pushItem);
     return out;
   }
 
@@ -2884,7 +2916,8 @@
         url: pick.url,
         artist: pick.artist,
         descriptionUrl: pick.descriptionUrl,
-        registration: null,
+        registration: pick.registration || null,
+        operator: pick.operator || null,
         source: "local"
       };
     }
@@ -3733,12 +3766,22 @@
     return entry;
   }
 
-  function pickOwnerAnswer(entry) {
+  function pickOwnerAnswer(entry, preferredOp) {
+    // Prefer CSV-backed owner for the exact airframe in the photo when available
+    if (preferredOp) {
+      return preferredOp;
+    }
     const pool = entry.answers || [];
-    if (!pool.length) return null;
-    // Rotate among top examples (type-level, not a specific airframe claim)
-    const top = pool.slice(0, Math.min(5, pool.length));
-    return top[Math.floor(Math.random() * top.length)];
+    if (pool.length) {
+      // answers are already named-owner-preferred from type-operators.json
+      const top = pool.slice(0, Math.min(5, pool.length));
+      return top[Math.floor(Math.random() * top.length)];
+    }
+    const easy = entry.easy || [];
+    if (easy.length) {
+      return easy[Math.floor(Math.random() * Math.min(3, easy.length))];
+    }
+    return null;
   }
 
   function buildOwnerChoices(correctOp, bucket) {
@@ -3748,12 +3791,15 @@
     const d = (TYPE_OPERATORS && TYPE_OPERATORS.distractors) || {};
     if (bucket && Array.isArray(d[bucket])) pools.push(d[bucket]);
     if (Array.isArray(d.any)) pools.push(d.any);
-    // Also harvest answers from other covered types as extra distractors
+    // Easy fleet brands + other type answers as distractors
     const otherAnswers = [];
     const types = (TYPE_OPERATORS && TYPE_OPERATORS.types) || {};
     Object.keys(types).forEach(function (k) {
-      const ans = types[k].answers || [];
-      for (let i = 0; i < ans.length && i < 3; i++) otherAnswers.push(ans[i]);
+      const t = types[k] || {};
+      const easy = t.easy || [];
+      for (let i = 0; i < easy.length && i < 4; i++) otherAnswers.push(easy[i]);
+      const ans = t.answers || [];
+      for (let i = 0; i < ans.length && i < 2; i++) otherAnswers.push(ans[i]);
     });
     pools.push(otherAnswers);
 
@@ -3794,9 +3840,20 @@
 
   function beginOwnerBonus(type) {
     const entry = operatorEntryFor(type);
-    if (!entry) return false;
-    const answer = pickOwnerAnswer(entry);
+    const preferredOp = (current && current.image && current.image.operator) || null;
+    // Owner bonus only after correct type (caller gates); need answers or airframe owner
+    if (!entry && !preferredOp) return false;
+    let effective = entry
+      ? { answers: (entry.answers || []).slice(), easy: entry.easy, bucket: entry.bucket || "any" }
+      : { answers: [], bucket: "any" };
+    if (preferredOp && effective.answers.indexOf(preferredOp) < 0) {
+      effective.answers = [preferredOp].concat(effective.answers).slice(0, 8);
+    } else if (preferredOp && !effective.answers.length) {
+      effective.answers = [preferredOp];
+    }
+    const answer = pickOwnerAnswer(effective, preferredOp);
     if (!answer) return false;
+    const entryForChoices = effective;
 
     ownerPhase = true;
     ownerAnswered = false;
@@ -3813,7 +3870,7 @@
     afterReveal.classList.remove("visible");
     factEl.textContent = type.fact || "";
 
-    renderOwnerChoices(answer, entry.bucket || "any");
+    renderOwnerChoices(answer, (entryForChoices && entryForChoices.bucket) || "any");
     return true;
   }
 
@@ -3915,7 +3972,8 @@
       streak++;
       updateScore();
       // Owner/operator bonus when CSV coverage exists — else continue as before
-      const hasOwner = !!operatorEntryFor(current.type);
+      // Bonus only after correct type; needs type pool and/or airframe operator from LOCAL_IMAGE_META
+      const hasOwner = !!operatorEntryFor(current.type) || !!(current.image && current.image.operator);
       if (hasOwner) {
         setAdvanceUi(false);
         if (ownerTimer) {

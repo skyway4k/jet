@@ -68,6 +68,57 @@ JUNK_EXACT = {
     "customer", "undelivered", "not delivered", "stock", "inventory",
 }
 
+# Big fractional / charter / fleet-management brands — fine as distractors or
+# occasional easy answers, but downranked vs named owners / LLCs for correct answers.
+EASY_FLEET_SUBSTR = (
+    "netjets", "flexjet", "vistajet", "wheels up", "jet linx", "jetlinx",
+    "corporate flight management", "execujet", "solairus",
+    "executive jet management", "jet aviation", "clay lacy",
+    "amber aviation", "thrive aviation", "jet edge", "sta jets",
+    "gama aviation", "pentastar aviation", "quanta aviation",
+    "alerion aviation", "chartright", "skyservice", "truaviation",
+    "wingtip aviation", "jetselect", "fly exclusive", "plane sense",
+    "airshare", "xsaviation", "exclusive jets", "jet it",
+    "directional aviation", "mountain aviation", "windsor jet",
+    "air charter group", "magellan jets", "sentient jet",
+)
+
+LLC_HINT = re.compile(
+    r"\b(LLC|L\.L\.C\.?|Inc\.?|Ltd\.?|Corp\.?|Corporation|Company|Co\.?|"
+    r"Trust|LLP|L\.P\.?|LP|GmbH|AG|S\.A\.?|SA|A\.S\.?|A\.Ş\.?|Pty|PLC)\b",
+    re.I,
+)
+
+
+def is_easy_fleet(op: str) -> bool:
+    low = (op or "").lower()
+    return any(s in low for s in EASY_FLEET_SUBSTR)
+
+
+def operator_tier(op: str) -> str:
+    """named = preferred correct answers; easy = distractors / fallback answers."""
+    if is_easy_fleet(op):
+        return "easy"
+    return "named"
+
+
+def operator_score(op: str, count: int) -> tuple:
+    """Sort key: named first, LLC/Inc hint next, then frequency."""
+    tier = 0 if operator_tier(op) == "named" else 1
+    llc = 0 if LLC_HINT.search(op or "") else 1
+    return (tier, llc, -count, op.lower())
+
+
+
+# Prefer these named owners in type answer pools (airframes we ship photos for)
+PINNED_TYPE_OPERATORS: dict[str, list[str]] = {
+    "Bombardier|Global Express / XRS": ["Genel Air"],
+    "Gulfstream|G650ER": ["Pivotal Ventures LLC", "Qatar Executive"],
+    "Gulfstream|G500": ["Starshot Ventures LLC"],
+    "Gulfstream|G550": ["Silver Stream Aviation LLC"],
+}
+
+
 # Explicit quiz displayName → matchers against CSV model (lowercased)
 # Each entry: list of (include_substrings_all, exclude_substrings_any)
 # Matched if ANY rule hits (all includes present, no excludes).
@@ -252,6 +303,34 @@ def is_junk_operator(op: str) -> bool:
     return False
 
 
+
+def extract_owner_from_notes(notes: str) -> str | None:
+    """Pull a named LLC/company from notes when operator field is blank."""
+    if not notes:
+        return None
+    # Find LLC/Inc/Ltd/Trust phrases; pick the longest plausible company name
+    matches = re.finditer(
+        r"\b([A-Z][A-Za-z0-9&.'\-]*(?:\s+[A-Z][A-Za-z0-9&.'\-]*){1,6}\s+"
+        r"(?:LLC|L\.L\.C\.?|Inc\.?|Ltd\.?|Corp\.?|Corporation|Trust|LLP|GmbH|AG))\b",
+        notes,
+    )
+    best = None
+    for m in matches:
+        cand = normalize_op(m.group(1))
+        # Require at least 2 content words before the entity suffix
+        words = cand.split()
+        if len(words) < 3:
+            continue
+        if is_junk_operator(cand) or is_easy_fleet(cand):
+            continue
+        # Reject truncated fragments like "Air LLC" / "Aviation LLC"
+        if words[0].lower() in {"air", "aviation", "jet", "flight", "aircraft", "the"}:
+            continue
+        if best is None or len(cand) > len(best):
+            best = cand
+    return best
+
+
 def normalize_op(op: str) -> str:
     s = re.sub(r"\s+", " ", op.strip())
     # light cleanup of trailing corp noise for display consistency — keep as-is mostly
@@ -317,6 +396,11 @@ def load_rows() -> list[dict]:
                 brand = (row.get("brand") or "").strip()
                 model = (row.get("model") or "").strip()
                 op = normalize_op(row.get("operator") or "")
+                notes = (row.get("notes") or "").strip()
+                if is_junk_operator(op):
+                    from_notes = extract_owner_from_notes(notes)
+                    if from_notes:
+                        op = from_notes
                 reg = (row.get("registration") or "").strip()
                 status = (row.get("status") or "").strip().lower()
                 if not model:
@@ -402,19 +486,42 @@ def main() -> None:
         if not merged:
             continue
 
-        # Rank operators by count
-        ranked = [op for op, _ in merged.most_common(20)]
-        # Keep top answers (rotate among these)
-        answers = ranked[:8]
+        # Split named owners/LLCs vs easy fleet brands; prefer named for correct answers
+        named = [(op, c) for op, c in merged.items() if operator_tier(op) == "named"]
+        easy = [(op, c) for op, c in merged.items() if operator_tier(op) == "easy"]
+        named_ranked = [op for op, c in sorted(named, key=lambda x: operator_score(x[0], x[1]))]
+        easy_ranked = [op for op, c in sorted(easy, key=lambda x: (-x[1], x[0].lower()))]
+
+        # Correct-answer pool: named/LLC first; fall back to easy fleets only if none
+        if named_ranked:
+            answers = named_ranked[:8]
+            easy_for_type = easy_ranked[:6]
+        else:
+            answers = easy_ranked[:8]
+            easy_for_type = easy_ranked[8:14]
+
         if not answers:
             continue
-        # Need enough variety globally for distractors; local answers ok with 1+
-        types_out[key] = {
+
+        entry = {
             "answers": answers,
             "bucket": size_bucket(p["sizeClass"]),
         }
+        if easy_for_type:
+            entry["easy"] = easy_for_type
+        # Pin known photo airframe owners to the front of the answer pool
+        for pinned in PINNED_TYPE_OPERATORS.get(key, []):
+            if pinned not in entry["answers"]:
+                entry["answers"] = [pinned] + entry["answers"]
+            else:
+                entry["answers"] = [pinned] + [a for a in entry["answers"] if a != pinned]
+            entry["answers"] = entry["answers"][:8]
+        types_out[key] = entry
         used_operators.update(answers)
-        coverage.append((key, len(answers), answers[0], merged[answers[0]]))
+        used_operators.update(easy_for_type)
+        top = answers[0]
+        coverage.append((key, len(answers), top, merged[top],
+                         sum(1 for a in answers if operator_tier(a) == "named")))
 
     # Distractor pools by bucket from all used + other frequent non-OEM operators
     # Collect global frequent operators from current rows
@@ -444,22 +551,41 @@ def main() -> None:
         for op, c in type_ops[p["key"]].most_common(15):
             bucket_ops[b][op] += c
 
+    # Fold type-level easy fleets into bucket distractors
+    for p in planes:
+        if p["disabled"] or p["key"] not in types_out:
+            continue
+        b = types_out[p["key"]]["bucket"]
+        for op in types_out[p["key"]].get("easy") or []:
+            bucket_ops[b][op] += 5  # boost easy brands as distractors
+
     distractors = {}
     for b, ctr in bucket_ops.items():
-        distractors[b] = [op for op, _ in ctr.most_common(80)]
-    distractors["any"] = [op for op, c in global_ops.most_common(120) if c >= 2]
+        # Prefer easy fleets early in distractor lists, then frequent named
+        ops = list(ctr.keys())
+        ops.sort(key=lambda op: (0 if is_easy_fleet(op) else 1, -ctr[op], op.lower()))
+        distractors[b] = ops[:80]
+    any_ops = [op for op, c in global_ops.most_common(200) if c >= 2]
+    any_ops.sort(key=lambda op: (0 if is_easy_fleet(op) else 1, -global_ops[op], op.lower()))
+    distractors["any"] = any_ops[:120]
 
     # Only publish operators that appear in answers or distractor lists
     publish_ops = set()
     for t in types_out.values():
         publish_ops.update(t["answers"])
+        publish_ops.update(t.get("easy") or [])
     for lst in distractors.values():
         publish_ops.update(lst)
 
+    named_answer_types = sum(
+        1 for t in types_out.values()
+        if t["answers"] and operator_tier(t["answers"][0]) == "named"
+    )
     payload = {
         "meta": {
-            "note": "Compact operator/owner labels for Name That Jet bonus round. Quiz types only — no full fleet dump, no raw CSV.",
+            "note": "Compact operator/owner labels for Name That Jet bonus. Named owners/LLCs preferred as correct answers; easy fleet brands as distractors/fallback. Quiz types only — no full fleet dump, no raw CSV.",
             "typesCovered": len(types_out),
+            "namedPreferredTypes": named_answer_types,
             "operatorsPublished": len(publish_ops),
             "question": "Who owns / operates this type?",
         },
@@ -470,8 +596,10 @@ def main() -> None:
     OUT.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     print(f"wrote {OUT} types={len(types_out)} ops={len(publish_ops)} bytes={OUT.stat().st_size}")
     print("\nCoverage:")
-    for key, n, top, cnt in sorted(coverage, key=lambda x: -x[3]):
-        print(f"  {n:2d} ans  top={cnt:4d}× {top[:40]:40s}  {key}")
+    for row in sorted(coverage, key=lambda x: -x[3]):
+        key, n, top, cnt = row[0], row[1], row[2], row[3]
+        named_n = row[4] if len(row) > 4 else "?"
+        print(f"  {n:2d} ans ({named_n} named) top={cnt:4d}× {top[:40]:40s}  {key}")
     missing = [p["key"] for p in planes if not p["disabled"] and p["key"] not in types_out]
     print(f"\nNo coverage ({len(missing)}):")
     for k in missing:
