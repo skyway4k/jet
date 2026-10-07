@@ -1,0 +1,893 @@
+{
+  "meta": {
+    "note": "Compact operator/owner labels for Name That Jet bonus round. Quiz types only — no full fleet dump, no raw CSV.",
+    "typesCovered": 43,
+    "operatorsPublished": 293,
+    "question": "Who owns / operates this type?"
+  },
+  "types": {
+    "Gulfstream|G200": {
+      "answers": [
+        "Jet Linx Aviation Inc.",
+        "TruAviation",
+        "Alerion Aviation",
+        "Executive Jet Management",
+        "Skyservice Business Aviation",
+        "Blue Skies Aviation",
+        "Aircraft Services Group Inc.",
+        "Chartright Air Group"
+      ],
+      "bucket": "mid"
+    },
+    "Gulfstream|G280": {
+      "answers": [
+        "Executive Jet Management",
+        "Jet Aviation Flight Services Inc",
+        "Solairus Aviation",
+        "Jet Edge International",
+        "Pentastar Aviation Charter",
+        "Quanta Aviation Services",
+        "LJ Aviation",
+        "Lockheed Martin Aeronautics"
+      ],
+      "bucket": "mid"
+    },
+    "Gulfstream|G350": {
+      "answers": [
+        "Solairus Aviation",
+        "Pentastar Aviation Charter",
+        "Mexican Police",
+        "AVN Air LLC",
+        "Circadian Aviation LLC",
+        "Gama Aviation LLC",
+        "Mira Vista Aviation Inc",
+        "Talon Air"
+      ],
+      "bucket": "large"
+    },
+    "Gulfstream|G450": {
+      "answers": [
+        "Flexjet LLC",
+        "Executive Jet Management",
+        "Solairus Aviation",
+        "JetSelect Aviation",
+        "Jet Aviation Flight Services Inc",
+        "Amber Aviation (NetJets)",
+        "Thrive Aviation",
+        "Deer Jet"
+      ],
+      "bucket": "large"
+    },
+    "Gulfstream|G500": {
+      "answers": [
+        "Jet Aviation Flight Services Inc",
+        "Executive Jet Management",
+        "Solairus Aviation",
+        "Clay Lacy Aviation",
+        "General Dynamics Corp.",
+        "Wingtip Aviation",
+        "Stephens Group Inc",
+        "Procter & Gamble"
+      ],
+      "bucket": "large"
+    },
+    "Gulfstream|G550": {
+      "answers": [
+        "Executive Jet Management",
+        "Solairus Aviation",
+        "STA Jets",
+        "Jet Aviation Flight Services Inc",
+        "Singapore Air Force",
+        "Las Vegas Sands Corporation",
+        "Zenflight",
+        "Asia United Business Aviation"
+      ],
+      "bucket": "large"
+    },
+    "Gulfstream|G600": {
+      "answers": [
+        "Solairus Aviation",
+        "Executive Jet Management",
+        "Clay Lacy Aviation",
+        "The Coca-Cola Company",
+        "Hampshire Aviation Ltd",
+        "Jet Aviation Flight Services Inc",
+        "CAI Compagnia Aeronautica Italiana",
+        "Polaris Aviation Solutions"
+      ],
+      "bucket": "large"
+    },
+    "Gulfstream|G650": {
+      "answers": [
+        "Flexjet LLC",
+        "Solairus Aviation",
+        "State of Kuwait",
+        "Jet Aviation Flight Services Inc",
+        "Executive Jet Management",
+        "Planet Nine Private Air",
+        "Jet Aviation Business Jets AG",
+        "Flexjet Operations Malta"
+      ],
+      "bucket": "large"
+    },
+    "Gulfstream|G650ER": {
+      "answers": [
+        "Solairus Aviation",
+        "Flexjet LLC",
+        "Qatar Executive",
+        "Jet Aviation Flight Services Inc",
+        "Executive Jet Management",
+        "Aeronautica Militare Italiana",
+        "Clay Lacy Aviation",
+        "Earth Star Inc."
+      ],
+      "bucket": "large"
+    },
+    "Gulfstream|G700": {
+      "answers": [
+        "Qatar Executive",
+        "Solairus Aviation",
+        "Flexjet LLC",
+        "Jet Aviation Business Jets AG",
+        "Starbucks Corporation",
+        "Executive Jet Management",
+        "Executive Jet Charter",
+        "Clay Lacy Aviation"
+      ],
+      "bucket": "large"
+    },
+    "Gulfstream|G800": {
+      "answers": [
+        "Solairus Aviation",
+        "Peak Enterprises LLC",
+        "Executive Jet Management",
+        "Servicios Aéreos Sudamericanos S.A.",
+        "Executive Jet Charter",
+        "Korean Air",
+        "ExecuJet Australia",
+        "Earth Star Inc."
+      ],
+      "bucket": "large"
+    },
+    "Gulfstream|GIV / G400": {
+      "answers": [
+        "Execuflight",
+        "Clay Lacy Aviation",
+        "StarFlite Aviation",
+        "Arab Republic of Egypt",
+        "Hera Flight",
+        "Fuerza Aerea de Chile",
+        "Journey Aviation",
+        "Southern Air Systems"
+      ],
+      "bucket": "large"
+    },
+    "Gulfstream|GV / G500 (classic)": {
+      "answers": [
+        "United States Air Force",
+        "Journey Aviation",
+        "United States Navy",
+        "Global Air Charters Inc",
+        "Talon Air",
+        "Solairus Aviation",
+        "Trans-Exec Air Service",
+        "JetSelect Aviation"
+      ],
+      "bucket": "large"
+    },
+    "Bombardier|Global 5000": {
+      "answers": [
+        "NetJets",
+        "Executive Jet Management",
+        "JetSelect Aviation",
+        "Solairus Aviation",
+        "Clay Lacy Aviation",
+        "Luftwaffe",
+        "RusJet",
+        "Skyservice Business Aviation"
+      ],
+      "bucket": "large"
+    },
+    "Bombardier|Global 5500": {
+      "answers": [
+        "NetJets",
+        "Skyservice Business Aviation",
+        "Elite Air",
+        "Solairus Aviation",
+        "TAG Aviation (Malta) Ltd",
+        "Blackbird Air Charter",
+        "Jet Concierge Club",
+        "Avcon Jet S.r.l."
+      ],
+      "bucket": "large"
+    },
+    "Bombardier|Global 6000": {
+      "answers": [
+        "VistaJet",
+        "NetJets",
+        "Solairus Aviation",
+        "NetJets Europe",
+        "Executive Jet Management",
+        "Jet Aviation Flight Services Inc",
+        "United Arab Emirates Air Force",
+        "ZYB Lily Jet"
+      ],
+      "bucket": "large"
+    },
+    "Bombardier|Global 6500": {
+      "answers": [
+        "Solairus Aviation",
+        "NetJets Europe",
+        "Jet Concierge Club",
+        "North-West Air Company",
+        "Executive Jet Management",
+        "Danaher Corp.",
+        "United States Air Force",
+        "Avcon Jet"
+      ],
+      "bucket": "large"
+    },
+    "Bombardier|Global 7500": {
+      "answers": [
+        "NetJets",
+        "VistaJet",
+        "Solairus Aviation",
+        "TAG Aviation Asia",
+        "Phenix Jet",
+        "Jet Aviation Flight Services Inc",
+        "Global Jet Luxembourg SA",
+        "Clay Lacy Aviation"
+      ],
+      "bucket": "large"
+    },
+    "Bombardier|Global 8000": {
+      "answers": [
+        "VistaJet",
+        "Chartright Air Group",
+        "NetJets",
+        "Global Flight Inc.",
+        "Comlux Aviation Aruba",
+        "Executive Jet Management",
+        "K5-Aviation",
+        "Gulf Wings FZE"
+      ],
+      "bucket": "large"
+    },
+    "Bombardier|Global Express / XRS": {
+      "answers": [
+        "Solairus Aviation",
+        "Planet Nine Private Air",
+        "ACI Jet",
+        "FAI Rent-a-Jet AG",
+        "Execaire",
+        "RusJet",
+        "Global Jet Luxembourg SA",
+        "Flexjet Operations Malta"
+      ],
+      "bucket": "large"
+    },
+    "Bombardier|Challenger 300": {
+      "answers": [
+        "JetSelect Aviation",
+        "Baker Aviation LLC",
+        "Flexjet LLC",
+        "Executive Jet Management",
+        "Wheels Up Private Jets LLC",
+        "Chartright Air Group",
+        "Solairus Aviation",
+        "Jet Linx Aviation Inc."
+      ],
+      "bucket": "mid"
+    },
+    "Bombardier|Challenger 350": {
+      "answers": [
+        "NetJets",
+        "Flexjet LLC",
+        "VistaJet",
+        "NetJets Europe",
+        "Executive Jet Management",
+        "JetSelect Aviation",
+        "flyExclusive",
+        "Airshare"
+      ],
+      "bucket": "mid"
+    },
+    "Bombardier|Challenger 3500": {
+      "answers": [
+        "Flexjet LLC",
+        "NetJets",
+        "Airshare",
+        "Ryanair",
+        "VistaJet",
+        "Solairus Aviation",
+        "Executive Jet Management",
+        "Jet Story Sp. z o.o."
+      ],
+      "bucket": "mid"
+    },
+    "Cessna|Citation Latitude": {
+      "answers": [
+        "NetJets",
+        "NetJets Europe",
+        "Aerolineas Ejecutivas",
+        "Nicholas Air",
+        "ConAgra Group Aviation",
+        "Aerowest GmbH",
+        "Japan Air Self-Defense Force",
+        "Koch Industries Inc."
+      ],
+      "bucket": "mid"
+    },
+    "Cessna|Citation Longitude": {
+      "answers": [
+        "NetJets",
+        "Thrive Aviation",
+        "Executive Jet Management",
+        "Wing Aviation Charter Services",
+        "Japan Civil Aviation Bureau",
+        "North American Air Charter",
+        "Travel Service Airlines",
+        "Transportacion Aerea Del Norte SA"
+      ],
+      "bucket": "mid"
+    },
+    "Cessna|Citation X": {
+      "answers": [
+        "Baker Aviation LLC",
+        "Wheels Up Private Jets LLC",
+        "Jet Excellence",
+        "Charter Airlines",
+        "Hera Flight",
+        "Jet Ten Private Jet Charter",
+        "BellAir",
+        "Air Partners Corp."
+      ],
+      "bucket": "mid"
+    },
+    "Cessna|Citation Sovereign": {
+      "answers": [
+        "NetJets",
+        "Executive Jet Management",
+        "Smart Aviation",
+        "Jet Linx Aviation Inc.",
+        "flyExclusive",
+        "Aviacion Ejecutiva Mexicana S.A.",
+        "Thrive Aviation",
+        "Avalair Aircraft Management"
+      ],
+      "bucket": "mid"
+    },
+    "Embraer|Phenom 100": {
+      "answers": [
+        "Pakistan Air Force",
+        "Sofar",
+        "State of Texas",
+        "Superior Air Charter",
+        "Jet Methods",
+        "Luxwing",
+        "Arcus Air",
+        "Quest Diagnostics"
+      ],
+      "bucket": "light"
+    },
+    "Embraer|Phenom 300": {
+      "answers": [
+        "NetJets",
+        "Flexjet LLC",
+        "Wheels Up Private Jets LLC",
+        "Airshare",
+        "NetJets Europe",
+        "Maxair",
+        "Servicios Aereos Across",
+        "Gold Aviation Services"
+      ],
+      "bucket": "light"
+    },
+    "Embraer|Praetor 500": {
+      "answers": [
+        "Flexjet LLC",
+        "NetJets",
+        "AirSprint",
+        "Aviacion Ejecutiva Mexicana S.A.",
+        "Summit Aviation",
+        "Image Air Charter",
+        "Aerolineas De Tehuacan S.A.",
+        "Executive Jet Management"
+      ],
+      "bucket": "mid"
+    },
+    "Embraer|Praetor 600": {
+      "answers": [
+        "Flexjet LLC",
+        "Flexjet Operations Malta",
+        "Executive Jet Management",
+        "Flexjet Ltd.",
+        "Walmart Aviation",
+        "Summit Aviation",
+        "Gold Aviation Services",
+        "Global Jet Luxembourg SA"
+      ],
+      "bucket": "mid"
+    },
+    "Embraer|Legacy 450": {
+      "answers": [
+        "AirSprint",
+        "Flexjet LLC",
+        "Air Service Liege",
+        "MidAmerica Jet",
+        "OnFlight",
+        "Aviacion Ejecutiva Mexicana S.A."
+      ],
+      "bucket": "mid"
+    },
+    "Embraer|Legacy 500": {
+      "answers": [
+        "FAB Força Aérea Brasileira",
+        "Flexjet Operations Malta",
+        "Servicios Aereos Across",
+        "AirSprint",
+        "Air Service Liege",
+        "Executive Jet Management",
+        "PAD Aviation Service GmbH",
+        "Aerovitro S.A."
+      ],
+      "bucket": "mid"
+    },
+    "Embraer|Lineage 1000": {
+      "answers": [
+        "Air X Charter",
+        "Union Aviation",
+        "Premiair",
+        "Conviasa",
+        "ExecuJet Middle East",
+        "Al Jaber Aviation",
+        "Arab Wings Company",
+        "Falcon Aviation Services"
+      ],
+      "bucket": "large"
+    },
+    "Dassault|Falcon 6X": {
+      "answers": [
+        "CAT Aviation",
+        "Air Alsie A/S",
+        "Global Jet Luxembourg SA",
+        "DC Aviation Al-Futtaim",
+        "Albinati Aviation",
+        "Starlink Aviation",
+        "Jet Aviation Business Jets Hong Kong Ltd",
+        "Setair"
+      ],
+      "bucket": "large"
+    },
+    "Dassault|Falcon 7X": {
+      "answers": [
+        "Solairus Aviation",
+        "Executive Jet Management",
+        "Air Alsie A/S",
+        "Luxaviation Belgium",
+        "Gazpromavia",
+        "VistaJet GmbH",
+        "Jet Aviation Flight Services Inc",
+        "Global Jet Luxembourg SA"
+      ],
+      "bucket": "large"
+    },
+    "Dassault|Falcon 8X": {
+      "answers": [
+        "Hai Au Aviation",
+        "Abelag Aviation",
+        "Shell Aviation",
+        "Gazpromavia",
+        "Global Jet Luxembourg SA",
+        "Volkswagen AirService",
+        "Dassault Falcon Service",
+        "Executive Jet Management"
+      ],
+      "bucket": "large"
+    },
+    "Dassault|Falcon 2000": {
+      "answers": [
+        "Corporate Eagle Management Services",
+        "Leader S.r.l.",
+        "Stark Airways",
+        "Rennia Aviation",
+        "Jet Access Aviation",
+        "AEM Aviation",
+        "Gestair",
+        "Fly Alliance"
+      ],
+      "bucket": "large"
+    },
+    "Dassault|Falcon 900": {
+      "answers": [
+        "Commandement du Transport Aerien Militaire",
+        "True Aviation Charter Services",
+        "Justice Air",
+        "Chicago Jet Group",
+        "MAC Air Group LLC",
+        "Rennia Aviation",
+        "Best Jets International",
+        "Meregrass"
+      ],
+      "bucket": "large"
+    },
+    "Dassault|Falcon 50": {
+      "answers": [
+        "France Marine Nationale",
+        "Century Aviation",
+        "Justice Air",
+        "Air Fuga",
+        "Club Jet Charter",
+        "Commandement du Transport Aerien Militaire",
+        "Harco Aviation LLC",
+        "SATA"
+      ],
+      "bucket": "mid"
+    },
+    "Pilatus|PC-24": {
+      "answers": [
+        "Cobalt Air LLC",
+        "Jetfly Aviation S.A.",
+        "Platoon Aviation",
+        "Flying Group Lux SA",
+        "Svenskt Ambulansflyg",
+        "Royal Flying Doctor Service",
+        "Karnavati Aviation",
+        "ExecuJet Africa"
+      ],
+      "bucket": "light"
+    },
+    "Bombardier|CRJ (VIP / corporate)": {
+      "answers": [
+        "Air Nostrum",
+        "ValueJet",
+        "Cityjet",
+        "Basra Airlines"
+      ],
+      "bucket": "large"
+    },
+    "Dassault|Falcon 2000LXS": {
+      "answers": [
+        "Aviation Charters Inc.",
+        "Nanshan Jet",
+        "Clay Lacy Aviation",
+        "45 North Aviation",
+        "Solairus Aviation",
+        "Exelon Business Services",
+        "Qatar Emiri Air Force",
+        "Dokia Air"
+      ],
+      "bucket": "large"
+    }
+  },
+  "distractors": {
+    "mid": [
+      "NetJets",
+      "Flexjet LLC",
+      "Executive Jet Management",
+      "XOJet",
+      "JetSelect Aviation",
+      "Jet Linx Aviation Inc.",
+      "Mountain Aviation",
+      "Baker Aviation LLC",
+      "NetJets Europe",
+      "Executive Jet Aviation",
+      "Wheels Up Private Jets LLC",
+      "Jet Solutions LLC",
+      "Israel Aircraft Industries Ltd",
+      "flyExclusive",
+      "Flight Options",
+      "Chartright Air Group",
+      "VistaJet",
+      "Falcon Jet Corporation",
+      "Solairus Aviation",
+      "Airshare",
+      "Jet Excellence",
+      "Jet Aviation Flight Services Inc",
+      "AirSprint",
+      "Canadair",
+      "Galaxy Aerospace LP",
+      "Clay Lacy Aviation",
+      "Aviacion Ejecutiva Mexicana S.A.",
+      "LJ Aviation",
+      "Thrive Aviation",
+      "Charter Airlines",
+      "Interstate Equipment Leasing",
+      "PCMT Aviation",
+      "Jet Edge International",
+      "International Jet Management",
+      "Hera Flight",
+      "CitationShares",
+      "Skyservice Business Aviation",
+      "Aerolineas Ejecutivas",
+      "Avcon Jet",
+      "Global Flight Inc.",
+      "Flexjet Operations Malta",
+      "Amira Air",
+      "Aircraft Services Group Inc.",
+      "Elite Air",
+      "Smart Aviation",
+      "Execaire",
+      "Club Jet Charter",
+      "Jet Access Aviation",
+      "GainJet Aviation SA",
+      "MJet",
+      "Wing Aviation Charter Services",
+      "Travel Service Airlines",
+      "Flexjet Ltd.",
+      "Chicago Jet Group",
+      "Deer Jet",
+      "Silver Air",
+      "DuPage Aerospace",
+      "Executive Airlines SA",
+      "Priester Aviation",
+      "Jet Alliance",
+      "Century Aviation",
+      "Commandement du Transport Aerien Militaire",
+      "Jet Story Sp. z o.o.",
+      "Nicholas Air",
+      "ConAgra Group Aviation",
+      "Summit Aviation",
+      "Servicios Aereos Across",
+      "France Marine Nationale",
+      "Justice Air",
+      "FAP Força Aérea Portuguesa",
+      "Pentastar Aviation Charter",
+      "Corporate Air LLC",
+      "Gama Aviation LLC",
+      "Ryanair",
+      "PrivateFlite Aviation",
+      "EFS European Flight Service AB",
+      "Delta Private Jets",
+      "Air Service Liege",
+      "FAB Força Aérea Brasileira",
+      "Aero Services Executive"
+    ],
+    "large": [
+      "Executive Jet Management",
+      "Solairus Aviation",
+      "Jet Aviation Flight Services Inc",
+      "NetJets",
+      "Clay Lacy Aviation",
+      "Flexjet LLC",
+      "Global Jet Luxembourg SA",
+      "VistaJet",
+      "Jet Edge International",
+      "Jet Aviation Business Jets AG",
+      "Skyservice Business Aviation",
+      "Air Nostrum",
+      "Netjets International",
+      "NetJets Europe",
+      "Global Flight Inc.",
+      "Qatar Executive",
+      "STA Jets",
+      "TAG Aviation Asia",
+      "TAG Aviation (UK) Limited",
+      "Executive Jet Aviation",
+      "Avcon Jet",
+      "Deer Jet",
+      "JetSelect Aviation",
+      "Journey Aviation",
+      "Air Alsie A/S",
+      "Dumont Aircraft Charter",
+      "Metrojet Ltd",
+      "Planet Nine Private Air",
+      "Falcon Jet Corporation",
+      "Pegasus Elite Aviation Inc",
+      "Avjet Corp.",
+      "Garuda Indonesia",
+      "Talon Air",
+      "Chartright Air Group",
+      "Phenix Jet",
+      "United States Air Force",
+      "Volkswagen AirService",
+      "Prime Jet",
+      "Hop!",
+      "Execaire",
+      "Brit Air",
+      "Gama Aviation LLC",
+      "ExecuJet Australia",
+      "ACI Jet",
+      "FAI Rent-a-Jet AG",
+      "Flying Group NV",
+      "Rennia Aviation",
+      "ExecuJet Middle East",
+      "VistaJet GmbH",
+      "Amber Aviation (NetJets)",
+      "Wingtip Aviation",
+      "RusJet",
+      "Jet Concierge Club",
+      "Gama Aviation Ltd",
+      "Asia United Business Aviation",
+      "Executive Fliteways",
+      "The Coca-Cola Company",
+      "Earth Star Inc.",
+      "Global Jet Aruba",
+      "Southern Air Systems",
+      "ZYB Lily Jet",
+      "Corporate Eagle Management Services",
+      "Cityjet",
+      "CAI Compagnia Aeronautica Italiana",
+      "Peak Enterprises LLC",
+      "Executive Jet Charter",
+      "StarFlite Aviation",
+      "KaiserAir",
+      "Türk Hava Kuvvetleri",
+      "United States Navy",
+      "Wing Aviation Charter Services",
+      "Luftwaffe",
+      "XOJet",
+      "United Arab Emirates Air Force",
+      "Zetta Jet",
+      "Ocean Sky",
+      "Air X Charter",
+      "Luxaviation Belgium",
+      "Empire Aviation Group",
+      "Dassault Falcon Service"
+    ],
+    "light": [
+      "NetJets",
+      "Flight Options",
+      "Airshare",
+      "Flexjet LLC",
+      "Wheels Up Private Jets LLC",
+      "Cobalt Air LLC",
+      "Superior Air Charter",
+      "Jetfly Aviation S.A.",
+      "Flairjet",
+      "Grandview Aviation",
+      "Pilatus Aircraft USA Ltd",
+      "NetJets Europe",
+      "Platoon Aviation",
+      "Gold Aviation Services",
+      "Servicios Aereos Across",
+      "Maxair",
+      "Flying Group Lux SA",
+      "Starlink Aviation",
+      "Arcus Air",
+      "Pakistan Air Force",
+      "Jet Methods",
+      "Luxwing",
+      "Svenskt Ambulansflyg",
+      "Sofar",
+      "Quest Diagnostics",
+      "Latitude 33 Aviation",
+      "Lider Taxi Aereo",
+      "Nicholas Air",
+      "Royal Flying Doctor Service",
+      "Karnavati Aviation",
+      "State of Texas",
+      "Flightpath Charter Airways Inc",
+      "Solairus Aviation",
+      "Jet Aviva LLC",
+      "Etihad Airways",
+      "ExecuJet Africa",
+      "OK Aviation Group",
+      "Volkswagen AirService",
+      "CAT Aviation",
+      "Western Aircraft"
+    ],
+    "any": [
+      "NetJets",
+      "Executive Jet Management",
+      "Flexjet LLC",
+      "Solairus Aviation",
+      "Jet Aviation Flight Services Inc",
+      "Clay Lacy Aviation",
+      "NetJets Europe",
+      "Jet Edge International",
+      "Cobalt Air LLC",
+      "Jet Linx Aviation Inc.",
+      "Global Jet Luxembourg SA",
+      "JetSelect Aviation",
+      "Skyservice Business Aviation",
+      "Azul Linhas Aéreas",
+      "Flight Options",
+      "Pilatus Aircraft Company",
+      "VistaJet",
+      "XOJet",
+      "Chartright Air Group",
+      "Wheels Up Private Jets LLC",
+      "Airshare",
+      "Avcon Jet",
+      "Executive Jet Aviation",
+      "Falcon Jet Corporation",
+      "Alliance Airlines",
+      "STA Jets",
+      "Mountain Aviation",
+      "TAG Aviation (UK) Limited",
+      "Jet Aviation Business Jets AG",
+      "United States Air Force",
+      "Tianjin Airlines",
+      "Royal Flying Doctor Service",
+      "Delta Air Lines",
+      "Gama Aviation LLC",
+      "Silver Air",
+      "Jetfly Aviation S.A.",
+      "Execaire",
+      "KLM Cityhopper",
+      "Summit Aviation",
+      "Tradewind Aviation",
+      "Porter Airlines",
+      "Priester Aviation",
+      "Baker Aviation LLC",
+      "International Jet Management",
+      "Global Flight Inc.",
+      "Air Alsie A/S",
+      "Talon Air",
+      "Netjets International",
+      "TAG Aviation Asia",
+      "JetBlue",
+      "Air Force Special Operations Command AFSOC",
+      "Air Canada",
+      "Jet Solutions LLC",
+      "Deer Jet",
+      "Journey Aviation",
+      "flyExclusive",
+      "Gestair",
+      "Wing Aviation Charter Services",
+      "Nicholas Air",
+      "Aerolitoral",
+      "Nordic Aviation Capital",
+      "Fly 7 Finland Oy",
+      "Planet Nine Private Air",
+      "Airlink",
+      "Avjet Corp.",
+      "Qatar Executive",
+      "Pegasus Elite Aviation Inc",
+      "Prime Jet",
+      "Israel Aircraft Industries Ltd",
+      "Air Methods",
+      "Flying Group NV",
+      "Volkswagen AirService",
+      "Jet Alliance",
+      "Air Nostrum",
+      "Global Jet Austria GMBH",
+      "Starlink Aviation",
+      "Executive Fliteways",
+      "Elite Air",
+      "Mira Vista Aviation Inc",
+      "Metrojet Ltd",
+      "AirSprint",
+      "Lufthansa CityLine",
+      "Hop!",
+      "LJ Aviation",
+      "Thrive Aviation",
+      "Gama Aviation Ltd",
+      "TAG Aviation SA",
+      "Dumont Aircraft Charter",
+      "ExecuJet Middle East",
+      "Quest Diagnostics",
+      "Flightworks",
+      "Presidential Aviation",
+      "MJet",
+      "Sirio",
+      "Meridian Air Charter",
+      "Jet Access Aviation",
+      "Air Dolomiti",
+      "Asia United Business Aviation",
+      "Elitavia Malta",
+      "LOT Polish Airlines",
+      "Aerolineas Argentinas",
+      "Executive Jets International",
+      "Fair Wind Air Charter",
+      "Dassault Falcon Service",
+      "Helvetic Airways",
+      "US Airways",
+      "Guardian Flight",
+      "Royal Canadian Mounted Police",
+      "Airfix Aviation",
+      "Delta Private Jets",
+      "Gama Aviation",
+      "Paradigm Jet Management",
+      "Fly Alliance",
+      "BA CityFlyer",
+      "Jet Story Sp. z o.o.",
+      "Flightpath Charter Airways Inc",
+      "Alerion Aviation",
+      "Novajet Aviation Group",
+      "Zenflight",
+      "Western Aircraft"
+    ]
+  }
+}

@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>Name That Private Jet</title>
-<meta name="jet-build" content="flag-ntfy-2026-09-30">
+<meta name="jet-build" content="owner-bonus-2026-10-06">
 <meta name="description" content="Name that private jet — and helicopter — from ramp photos.">
 <style>
   :root {
@@ -365,6 +365,37 @@
   }
 
   .tap-hint.visible { display: block; }
+
+  .bonus-prompt {
+    display: none;
+    margin: 0.35rem 0 0.15rem;
+    text-align: center;
+    font-size: 0.95rem;
+    font-weight: 650;
+    letter-spacing: 0.01em;
+    color: var(--accent);
+  }
+  .bonus-prompt.visible { display: block; }
+  .bonus-prompt .bonus-eyebrow {
+    display: block;
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 0.2rem;
+  }
+  .bonus-teach {
+    display: none;
+    margin: 0.25rem 0 0;
+    text-align: center;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--text);
+  }
+  .bonus-teach.visible { display: block; }
+  .bonus-teach.ok { color: var(--success); }
+  .bonus-teach.miss .nick { color: var(--accent); }
 
   .main.can-advance {
     cursor: pointer;
@@ -1274,6 +1305,12 @@
       <p class="hint-text" id="hintText"></p>
     </div>
 
+    <div class="bonus-prompt" id="bonusPrompt" aria-live="polite">
+      <span class="bonus-eyebrow">Bonus</span>
+      Who owns / operates this type?
+    </div>
+    <p class="bonus-teach" id="bonusTeach" aria-live="polite"></p>
+
     <div class="choices" id="choices" role="group" aria-label="Guess the aircraft"></div>
 
     <div class="after-reveal" id="afterReveal">
@@ -2009,6 +2046,33 @@
     }
   })();
 
+  // Compact owner/operator labels for Name That Jet bonus (quiz types only).
+  let TYPE_OPERATORS = { meta: {}, types: {}, distractors: {} };
+  let typeOperatorsReady = Promise.resolve(TYPE_OPERATORS);
+  (function refreshTypeOperatorsFromNetwork() {
+    try {
+      const bust = (document.querySelector('meta[name="jet-build"]') || {}).content || String(Date.now());
+      const url = "data/type-operators.json?v=" + encodeURIComponent(bust);
+      typeOperatorsReady = fetch(url, { cache: "no-cache" })
+        .then(function (res) {
+          if (!res || !res.ok) throw new Error("operators HTTP " + (res && res.status));
+          return res.json();
+        })
+        .then(function (data) {
+          if (!data || typeof data !== "object") return TYPE_OPERATORS;
+          if (data.types && typeof data.types === "object") TYPE_OPERATORS.types = data.types;
+          if (data.distractors && typeof data.distractors === "object") {
+            TYPE_OPERATORS.distractors = data.distractors;
+          }
+          if (data.meta) TYPE_OPERATORS.meta = data.meta;
+          return TYPE_OPERATORS;
+        })
+        .catch(function () { return TYPE_OPERATORS; });
+    } catch (e) {
+      typeOperatorsReady = Promise.resolve(TYPE_OPERATORS);
+    }
+  })();
+
 
   /**
    * Civil/bizjet-relevant national marks.
@@ -2410,6 +2474,10 @@
   let preloadPromise = null;
   let lastLbEntryId = null;
   let pendingEndStreak = null; // teach-first: hold streak until continue tap after a miss
+  let ownerPhase = false; // Name That Jet bonus after correct type
+  let ownerCorrect = null; // correct operator label for current bonus
+  let ownerAnswered = false;
+  let ownerTimer = null;
 
   // --- DOM ---
   const stage = document.getElementById("stage");
@@ -2422,6 +2490,8 @@
   const hintText = document.getElementById("hintText");
   const choicesEl = document.getElementById("choices");
   const afterReveal = document.getElementById("afterReveal");
+  const bonusPrompt = document.getElementById("bonusPrompt");
+  const bonusTeach = document.getElementById("bonusTeach");
   const factEl = document.getElementById("fact");
   const tapHint = document.getElementById("tapHint");
   const mainEl = document.querySelector(".main");
@@ -3419,6 +3489,7 @@
 
   function handleContinueTap() {
     if (!canAdvance || !revealed || runEnded || advancing) return;
+    if (ownerPhase && !ownerAnswered) return;
     if (!lbScreen.classList.contains("hidden")) return;
     if (!startScreen.classList.contains("hidden")) return;
     if (pendingEndStreak !== null) {
@@ -3511,6 +3582,7 @@
       clearRegReveal();
     }
     pendingEndStreak = null;
+    clearOwnerUi();
     setAdvanceUi(false);
   }
 
@@ -3637,6 +3709,169 @@
     }
   }
 
+
+  function clearOwnerUi() {
+    ownerPhase = false;
+    ownerCorrect = null;
+    ownerAnswered = false;
+    if (ownerTimer) {
+      try { clearTimeout(ownerTimer); } catch (_) {}
+      ownerTimer = null;
+    }
+    if (bonusPrompt) bonusPrompt.classList.remove("visible");
+    if (bonusTeach) {
+      bonusTeach.classList.remove("visible", "ok", "miss");
+      bonusTeach.textContent = "";
+    }
+    if (choicesEl) choicesEl.setAttribute("aria-label", "Guess the aircraft");
+  }
+
+  function operatorEntryFor(type) {
+    if (!type || !TYPE_OPERATORS || !TYPE_OPERATORS.types) return null;
+    const entry = TYPE_OPERATORS.types[typeKey(type)];
+    if (!entry || !Array.isArray(entry.answers) || !entry.answers.length) return null;
+    return entry;
+  }
+
+  function pickOwnerAnswer(entry) {
+    const pool = entry.answers || [];
+    if (!pool.length) return null;
+    // Rotate among top examples (type-level, not a specific airframe claim)
+    const top = pool.slice(0, Math.min(5, pool.length));
+    return top[Math.floor(Math.random() * top.length)];
+  }
+
+  function buildOwnerChoices(correctOp, bucket) {
+    const picked = new Set([correctOp]);
+    const out = [correctOp];
+    const pools = [];
+    const d = (TYPE_OPERATORS && TYPE_OPERATORS.distractors) || {};
+    if (bucket && Array.isArray(d[bucket])) pools.push(d[bucket]);
+    if (Array.isArray(d.any)) pools.push(d.any);
+    // Also harvest answers from other covered types as extra distractors
+    const otherAnswers = [];
+    const types = (TYPE_OPERATORS && TYPE_OPERATORS.types) || {};
+    Object.keys(types).forEach(function (k) {
+      const ans = types[k].answers || [];
+      for (let i = 0; i < ans.length && i < 3; i++) otherAnswers.push(ans[i]);
+    });
+    pools.push(otherAnswers);
+
+    for (let pi = 0; pi < pools.length; pi++) {
+      const list = shuffle(pools[pi].slice());
+      for (let i = 0; i < list.length; i++) {
+        const op = list[i];
+        if (!op || picked.has(op)) continue;
+        picked.add(op);
+        out.push(op);
+        if (out.length >= 4) break;
+      }
+      if (out.length >= 4) break;
+    }
+    return shuffle(out.slice(0, 4));
+  }
+
+  function renderOwnerChoices(correctOp, bucket) {
+    const opts = buildOwnerChoices(correctOp, bucket);
+    currentOptions = opts.slice();
+    selectedLabel = null;
+    choicesEl.innerHTML = "";
+    choicesEl.setAttribute("aria-label", "Guess the operator or owner");
+    opts.forEach(function (op) {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "choice-btn";
+      btn.textContent = op;
+      btn.dataset.key = op;
+      btn.addEventListener("click", function (e) {
+        e.stopPropagation();
+        onChooseOwner(op);
+      });
+      choicesEl.appendChild(btn);
+    });
+    choicesEl.classList.add("visible");
+  }
+
+  function beginOwnerBonus(type) {
+    const entry = operatorEntryFor(type);
+    if (!entry) return false;
+    const answer = pickOwnerAnswer(entry);
+    if (!answer) return false;
+
+    ownerPhase = true;
+    ownerAnswered = false;
+    ownerCorrect = answer;
+    pendingEndStreak = null;
+    setAdvanceUi(false);
+
+    if (bonusTeach) {
+      bonusTeach.classList.remove("visible", "ok", "miss");
+      bonusTeach.textContent = "";
+    }
+    if (bonusPrompt) bonusPrompt.classList.add("visible");
+    // Keep type fact hidden until bonus is answered — avoid clutter
+    afterReveal.classList.remove("visible");
+    factEl.textContent = type.fact || "";
+
+    renderOwnerChoices(answer, entry.bucket || "any");
+    return true;
+  }
+
+  function onChooseOwner(selectedOp) {
+    if (!ownerPhase || ownerAnswered || !current || current.mode === "tail") return;
+    if (stage.classList.contains("loading") || stage.classList.contains("error")) return;
+
+    ownerAnswered = true;
+    selectedLabel = selectedOp;
+    const isCorrect = selectedOp === ownerCorrect;
+
+    const buttons = choicesEl.querySelectorAll(".choice-btn");
+    buttons.forEach(function (btn) {
+      btn.disabled = true;
+      const key = btn.dataset.key;
+      if (key === ownerCorrect) {
+        btn.classList.add("correct");
+      } else if (key === selectedOp && !isCorrect) {
+        btn.classList.add("wrong");
+      } else {
+        btn.classList.add("dimmed");
+      }
+    });
+
+    if (bonusPrompt) bonusPrompt.classList.remove("visible");
+
+    if (isCorrect) {
+      // Bonus streak bump — wrong owner does NOT reset or end the run
+      streak++;
+      updateScore();
+      if (bonusTeach) {
+        bonusTeach.textContent = "Nice — " + ownerCorrect;
+        bonusTeach.classList.add("visible", "ok");
+        bonusTeach.classList.remove("miss");
+      }
+      factEl.textContent = current.type.fact || "";
+      afterReveal.classList.add("visible");
+      attrib.classList.add("visible");
+      enableContinueAfterAnswer(false);
+    } else {
+      const nick = MISS_NICKNAMES[Math.floor(Math.random() * MISS_NICKNAMES.length)];
+      if (bonusTeach) {
+        bonusTeach.innerHTML =
+          escapeHtml(ownerCorrect) +
+          " operates this type, <span class=\"nick\">" +
+          escapeHtml(nick) +
+          "</span>.";
+        bonusTeach.classList.add("visible", "miss");
+        bonusTeach.classList.remove("ok");
+      }
+      factEl.textContent = current.type.fact || "";
+      afterReveal.classList.add("visible");
+      attrib.classList.add("visible");
+      // Teach then continue — streak from type correct stays intact
+      enableContinueAfterAnswer(false);
+    }
+  }
+
   function onChoose(selected) {
     if (revealed || !current || current.mode === "tail" || stage.classList.contains("loading") || stage.classList.contains("error")) {
       return;
@@ -3679,7 +3914,24 @@
       called++;
       streak++;
       updateScore();
-      enableContinueAfterAnswer(false);
+      // Owner/operator bonus when CSV coverage exists — else continue as before
+      const hasOwner = !!operatorEntryFor(current.type);
+      if (hasOwner) {
+        setAdvanceUi(false);
+        if (ownerTimer) {
+          try { clearTimeout(ownerTimer); } catch (_) {}
+        }
+        ownerTimer = setTimeout(function () {
+          ownerTimer = null;
+          if (!current || current.mode === "tail" || runEnded) return;
+          // Still on this revealed correct type round
+          if (!beginOwnerBonus(current.type)) {
+            enableContinueAfterAnswer(false);
+          }
+        }, 420);
+      } else {
+        enableContinueAfterAnswer(false);
+      }
     } else {
       const finalStreak = streak; // streak before the miss
       streak = 0;
